@@ -1,9 +1,11 @@
 import cors = require("@koa/cors");
+import { getLimiterConfig } from "./util/limiterReq";
 import { addRouter } from "./routes/routes";
+import { limiterRedis, redisDb0 } from "./util/redisTool";
 const ratelimit = require("koa-ratelimit");
 const koaBody = require("koa-body");
 
-import Koa , { Context }from 'koa';              // 导入koa
+import Koa, { Context } from 'koa';              // 导入koa
 import Router from "koa-router";    // 导入koa-router
 
 class App {
@@ -35,10 +37,12 @@ class App {
                 "maxFileSize": 200 * 1024 * 1024	// 设置上传文件大小最大限制，默认2M
             }
         }));
-        
+
+        // http请求次数限制(目前使用用户的ip来限制的)
+        this.app.use(ratelimit((getLimiterConfig((ctx: Context) => ctx.ip, limiterRedis))));
+
         // add route
         addRouter(this.router);
-        console.error("this.router.routes()", this.router.routes())
         this.app.use(this.router.routes()).use(this.router.allowedMethods());
 
         // deal 404

@@ -162,7 +162,8 @@ class RedisTool implements redisTool {
      */
     public async lock(ressource: string) {
         try {
-            return await this.redlock.lock(ressource, 1000,);
+            const lockKey: string = ressource + "_LOCK_";
+            return await this.redlock.lock(lockKey, 1000,);
             // lock.unlock();
         } catch (err) {
             return false;
@@ -387,7 +388,6 @@ class RedisTool implements redisTool {
         } catch (e) {
             // tslint:disable-next-line:no-console
             console.error(e);
-
             return null;
         }
     }
@@ -607,5 +607,6 @@ class RedisTool implements redisTool {
  * 每次个模块调用redis的时候，始终是取第一次生成的实例，避免了多次连接redis的尴尬
  * 
  */
-export const redisDb1 = new RedisTool({ "db": 0 });
+export const redisDb0 = new RedisTool({ "db": 0 });
+export const limiterRedis = new ioredis(redisConfig);
 // export const redis_db2 = new RedisTool({db:2})

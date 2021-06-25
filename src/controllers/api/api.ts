@@ -23,8 +23,8 @@ export default class AuthController {
      * @param ctx 
      * @returns 
      */
-    @get("/test")
+    @get("/testRedis")
     public async login(ctx: Context) {
-        return ctx.body = await this.service.test();
+        return ctx.body = await wrap(this.service.testRedis());
     }
 }

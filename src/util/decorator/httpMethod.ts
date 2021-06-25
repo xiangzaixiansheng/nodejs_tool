@@ -16,7 +16,6 @@ import { ROUTER_MAP } from '../../constant/constants';
  */
 // tslint:disable-next-line:only-arrow-functions
 function createMethodDecorator(method: string) {
-    console.error("注册方法===")
     // 装饰器接收路由 path 作为参数
     // tslint:disable-next-line:only-arrow-functions
     return function httpMethodDecorator(path: string, isVerify?: boolean) {
