@@ -1,10 +1,9 @@
-import Router = require("@koa/router");
 import fs = require("fs");
 import path = require("path");
 import { resolve } from "path";
 import "reflect-metadata";
-// 路由配置
-const ROUTER_MAP = Symbol("route_map");
+// 路由配置 注意这里的路由注册要和/src/util/decorator/httpMethod.ts方法注册是一个。
+import { ROUTER_MAP } from '../constant/constants';
 
 /**
  * 路由类型

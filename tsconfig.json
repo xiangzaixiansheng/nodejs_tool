@@ -67,7 +67,7 @@
 
     /* Advanced Options */
     "skipLibCheck": true,                           /* Skip type checking of declaration files. */
-    "experimentalDecorators": true,
+    "experimentalDecorators": true,                 //开启装饰器修饰
     "emitDecoratorMetadata": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true        /* Disallow inconsistently-cased references to the same file. */

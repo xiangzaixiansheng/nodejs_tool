@@ -1,13 +1,12 @@
-import { redisDb1 } from './util/redisTool';
 import cors = require("@koa/cors");
 import { addRouter } from "./routes/routes";
 const ratelimit = require("koa-ratelimit");
 const koaBody = require("koa-body");
 
-import Koa from 'koa';              // 导入koa
+import Koa , { Context }from 'koa';              // 导入koa
 import Router from "koa-router";    // 导入koa-router
 
-export class App {
+class App {
     /**
     * Koa对象
     */
@@ -38,7 +37,14 @@ export class App {
         }));
         // add route
         addRouter(this.router);
+        console.error("this.router.routes()", this.router.routes())
         this.app.use(this.router.routes()).use(this.router.allowedMethods());
+
+        // deal 404
+        this.app.use(async (ctx: Context) => {
+            ctx.status = 404;
+            ctx.body = '404! content not found !';
+        });
     }
 
     public start() {

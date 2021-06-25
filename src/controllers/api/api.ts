@@ -1,7 +1,7 @@
 import { Context } from "koa";
-import { ApiService } from "../service/ApiService";
-import { wrap } from '../util/requestRes';
-import { post, get, put, del } from "../util/decorator/httpMethod";
+import { ApiService } from "../../service/ApiService";
+import { wrap } from '../../util/requestRes';
+import { post, get, put, del } from "../../util/decorator/httpMethod";
 
 /**
  * 
@@ -23,9 +23,8 @@ export default class AuthController {
      * @param ctx 
      * @returns 
      */
-    @post("/test")
+    @get("/test")
     public async login(ctx: Context) {
-        console.error("come in====")
         return ctx.body = await this.service.test();
     }
 }

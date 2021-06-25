@@ -1,10 +1,11 @@
 //文章参考：https://www.cnblogs.com/edwardloveyou/p/12259245.html
+//参考github: https://github.com/edwardzhong/koa-server
 //定义http请求的装饰器 和加载router的方法
 
 
 import "reflect-metadata";
 
-const ROUTER_MAP = Symbol("route_map");
+import { ROUTER_MAP } from '../../constant/constants';
 
 /**
  * 
@@ -15,6 +16,7 @@ const ROUTER_MAP = Symbol("route_map");
  */
 // tslint:disable-next-line:only-arrow-functions
 function createMethodDecorator(method: string) {
+    console.error("注册方法===")
     // 装饰器接收路由 path 作为参数
     // tslint:disable-next-line:only-arrow-functions
     return function httpMethodDecorator(path: string, isVerify?: boolean) {
