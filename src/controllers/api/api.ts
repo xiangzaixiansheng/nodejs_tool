@@ -27,4 +27,9 @@ export default class AuthController {
     public async login(ctx: Context) {
         return ctx.body = await wrap(this.service.testRedis());
     }
+
+    @get("/testArray")
+    public async testArray(ctx: Context) {
+        return ctx.body = await wrap(this.service.testArray());
+    }
 }
