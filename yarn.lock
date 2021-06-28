@@ -293,6 +293,13 @@ async-ratelimiter@^1.2.8:
   resolved "https://registry.nlark.com/async-ratelimiter/download/async-ratelimiter-1.2.8.tgz#36ae3381d5b88e931d571d2529b775837844adaf"
   integrity sha1-Nq4zgdW4jpMdVx0lKbd1g3hEra8=
 
+axios@^0.21.1:
+  version "0.21.1"
+  resolved "https://registry.nlark.com/axios/download/axios-0.21.1.tgz#22563481962f4d6bde9a76d516ef0e5d3c09b2b8"
+  integrity sha1-IlY0gZYvTWvemnbVFu8OXTwJsrg=
+  dependencies:
+    follow-redirects "^1.10.0"
+
 balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.nlark.com/balanced-match/download/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
@@ -635,6 +642,11 @@ fill-range@^7.0.1:
   integrity sha1-GRmmp8df44ssfHflGYU12prN2kA=
   dependencies:
     to-regex-range "^5.0.1"
+
+follow-redirects@^1.10.0:
+  version "1.14.1"
+  resolved "https://registry.nlark.com/follow-redirects/download/follow-redirects-1.14.1.tgz#d9114ded0a1cfdd334e164e6662ad02bfd91ff43"
+  integrity sha1-2RFN7Qoc/dM04WTmZirQK/2R/0M=
 
 formidable@^1.1.1:
   version "1.2.2"

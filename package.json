@@ -37,6 +37,7 @@
     "@koa/router": "^10.0.0",
     "@types/koa__cors": "^3.0.2",
     "@types/koa__router": "^8.0.4",
+    "axios": "^0.21.1",
     "koa": "^2.13.1",
     "koa-body": "^4.2.0",
     "koa-ratelimit": "^5.0.0",
