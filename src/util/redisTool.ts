@@ -185,7 +185,7 @@ class RedisTool implements redisTool {
     }
 
     /**
-     * 存储string类型的key-value
+     * 存储string类型/JSON类型的value
      * @param key key
      * @param value value
      * @returns "OK" or null
@@ -195,6 +195,23 @@ class RedisTool implements redisTool {
         try {
             let res = await this.redis.set(key, val);
             console.error(res);
+            return res;
+        } catch (e) {
+            // tslint:disable-next-line:no-console
+            console.error(e);
+            return null;
+        }
+    }
+
+    /**
+     *
+     * @param key key
+     * @param value value
+     * @returns "OK" or null
+     */
+     public async set(key: string, value: any) {
+        try {
+            let res = await this.redis.set(key, value);
             return res;
         } catch (e) {
             // tslint:disable-next-line:no-console
