@@ -20,20 +20,20 @@ sudo npm i -g treer
 
 treer -i node_modules  result.txt
 
-  ├─src
-  |  ├─.DS_Store
-  |  ├─index.ts
-  |  ├─util
-  |  |  ├─.DS_Store
-  |  |  ├─DateFormat.ts 时间转换
-  |  |  ├─arrayTool.ts  数组操作
-  |  |  ├─encryption.ts 加密相关
-  |  |  ├─execTool.ts 执行linux命令相关
-  |  |  ├─limiterReq.ts 请求限制
-  |  |  ├─randomTool.ts random相关
-  |  |  ├─redisTool.ts 操作redis相关
-  |  |  ├─requestRes.ts 
-  |  |  ├─requestTool.ts 请求相关
-  |  |  ├─typeTool.ts 判断类型相关
-  |  |  ├─decorator
-  |  |  |     └httpMethod.ts
+├─src  
+|  ├─.DS_Store  
+|  ├─index.ts  
+|  ├─util  
+|  |  ├─.DS_Store  
+|  |  ├─DateFormat.ts 时间转换  
+|  |  ├─arrayTool.ts  数组操作  
+|  |  ├─encryption.ts 加密相关  
+|  |  ├─execTool.ts 执行linux命令相关  
+|  |  ├─limiterReq.ts 请求限制  
+|  |  ├─randomTool.ts random相关  
+|  |  ├─redisTool.ts 操作redis相关  
+|  |  ├─requestRes.ts   
+|  |  ├─requestTool.ts 请求相关  
+|  |  ├─typeTool.ts 判断类型相关  
+|  |  ├─decorator  
+|  |  |     └httpMethod.ts  
