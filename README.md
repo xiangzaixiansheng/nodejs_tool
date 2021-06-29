@@ -20,7 +20,7 @@ sudo npm i -g treer
 
 treer -i node_modules  result.txt
 
-`├─src
+├─src
 |  ├─.DS_Store
 |  ├─index.ts
 |  ├─util
@@ -36,4 +36,4 @@ treer -i node_modules  result.txt
 |  |  ├─requestTool.ts 请求相关
 |  |  ├─typeTool.ts 判断类型相关
 |  |  ├─decorator
-|  |  |     └httpMethod.ts`
+|  |  |     └httpMethod.ts
