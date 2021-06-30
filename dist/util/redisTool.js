@@ -92,6 +92,16 @@ class RedisTool {
             return null;
         }
     }
+    async set(key, value) {
+        try {
+            let res = await this.redis.set(key, value);
+            return res;
+        }
+        catch (e) {
+            console.error(e);
+            return null;
+        }
+    }
     async getString(key) {
         try {
             return await this.redis.get(key);
