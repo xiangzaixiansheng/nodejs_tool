@@ -25,6 +25,7 @@
     "@types/node": "^15.12.4",
     "@types/node-rsa": "^1.1.0",
     "@types/redlock": "^4.0.1",
+    "@types/request-promise": "^4.1.47",
     "ioredis": "^4.27.6",
     "nodemon": "^2.0.7",
     "redlock": "^4.2.0",
@@ -44,6 +45,7 @@
     "koa-router": "^10.0.0",
     "moment": "^2.29.1",
     "node-rsa": "^1.1.1",
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "^0.1.13",
+    "request-promise": "^4.2.6"
   }
 }
