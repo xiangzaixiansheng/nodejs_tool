@@ -3,12 +3,13 @@
 * @Author: xiangzai
 */
 import request from 'request-promise';
+//import * as request from 'request-promise';
 
 /**
  * 请求接口数据
  * @param {Object} params 后台http请求参数数据 
  */
-function reqGetPromise(uri: string, qs: any) {
+export async function reqGetPromise(uri: string, qs: any) {
     return new Promise((resolve, reject) => {
         request({
             uri,
@@ -38,7 +39,7 @@ function reqGetPromise(uri: string, qs: any) {
     });
 }
 
-export function reqPostPromise(uri: string, params: any) {
+export async function reqPostPromise(uri: string, params: any) {
     return request({
         method: 'POST',
         uri,
