@@ -28,8 +28,19 @@ export default class AuthController {
         return ctx.body = await wrap(this.service.testRedis());
     }
 
-    @post("/testArray")
+    @get("/testArray")
     public async testArray(ctx: Context) {
-        return ctx.body = await wrap(this.service.testArray());
+        let query = ctx.query;
+        return ctx.body = await wrap(this.service.testArray(query));
+    }
+    
+    /**
+     * 测试 request-Promise
+     * @param ctx 
+     * @returns 
+     */
+    @post("/testRequestV1")
+    public async testRequestV1(ctx: Context) {
+        return ctx.body = await wrap(this.service.testRequestV1());
     }
 }

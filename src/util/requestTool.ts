@@ -1,5 +1,12 @@
 import axios, { AxiosRequestConfig } from "axios";
 
+/**
+ * 
+ * @param url
+ * @param options
+ * @param openLog 是否开启log
+ * @returns 
+ */
 async function get(url: string, options?: AxiosRequestConfig, openLog = true) {
   return axios
     .get(url, options)
