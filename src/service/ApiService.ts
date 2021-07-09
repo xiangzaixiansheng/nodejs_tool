@@ -1,8 +1,11 @@
 import { redisDb0 } from '../util/redisTool';
 import { sortBy, arrayChunk } from '../util/arrayTool';
+import { reqGetPromise } from '../util/reqPromiseTool';
+import { get } from '../util/requestTool';
 
 export class ApiService {
 
+    //测试读写redis
     public async testRedis() {
         //测试set
         let res = await redisDb0.setString("test", { hello: "hello" });
@@ -14,7 +17,11 @@ export class ApiService {
     }
 
     //测试数组相关的
-    public async testArray() {
+    public async testArray(query?: any) {
+        if (query && query.array) {
+            return sortBy(query.array.split(","));
+        }
+
         let testArray = [8, 9, 2, 1, 0, 6];
         let result1 = sortBy(testArray);
         let result2 = sortBy(testArray, (item) => -item); //倒序
@@ -44,6 +51,13 @@ export class ApiService {
         console.error(sortBy(arr, (i) => -sFn(i))) //age从大到小
 
         return "success"
+    }
+
+    //测试请求request-promise接口
+    public async testRequestV1() {
+        let res = await reqGetPromise("http://localhost:8080/api/testArray", { array: "8,9,2,1,3,4", data: "123" });
+        let res2= await get("http://localhost:8080/api/testArray", { params: { array: "8,9,2,1,3,4", data: "123" } });
+        return res2;
     }
 
 }
