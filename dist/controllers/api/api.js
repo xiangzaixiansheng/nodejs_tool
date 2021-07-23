@@ -20,7 +20,11 @@ class AuthController {
         return ctx.body = await requestRes_1.wrap(this.service.testRedis());
     }
     async testArray(ctx) {
-        return ctx.body = await requestRes_1.wrap(this.service.testArray());
+        let query = ctx.query;
+        return ctx.body = await requestRes_1.wrap(this.service.testArray(query));
+    }
+    async testRequestV1(ctx) {
+        return ctx.body = await requestRes_1.wrap(this.service.testRequestV1());
     }
 }
 __decorate([
@@ -35,4 +39,10 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "testArray", null);
+__decorate([
+    httpMethod_1.post("/testRequestV1"),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "testRequestV1", null);
 exports.default = AuthController;
