@@ -27,7 +27,7 @@ export const reqGetPromise = async (uri: string, qs: any, headers?: any) => {
             json: true
         }).then(data => {
             //转换一些buffer类型的
-            if(Buffer.isBuffer(data)) {
+            if (Buffer.isBuffer(data)) {
                 bufferHelper.concat(data);
                 var decode = iconv.decode(bufferHelper.toBuffer(), 'utf-8');
                 return resolve(decode);
@@ -51,17 +51,17 @@ export const reqGetPromise = async (uri: string, qs: any, headers?: any) => {
     });
 }
 
-export async function reqPostPromise(uri: string, params: any) {
+export async function reqPostPromise(uri: string, params: any, headers?: any) {
     return request({
         method: 'POST',
         uri,
         body: params,
-        headers: {
-            'User-Agent': 'Request-Promise'
-        },
+        headers: headers ? {
+            'Content-type': 'application/json'
+        } : headers,
         json: true
     }).then(data => {
-        return data;
+        return { status: 1, data };
     }).catch(err => {
         return {
             status: 0,
