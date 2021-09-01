@@ -25,6 +25,7 @@
     "@types/koa__cors": "^3.0.2",
     "@types/node": "^15.12.4",
     "@types/node-rsa": "^1.1.0",
+    "@types/node-xlsx": "^0.15.2",
     "@types/redlock": "^4.0.1",
     "@types/request-promise": "^4.1.47",
     "ioredis": "^4.27.6",
@@ -47,6 +48,7 @@
     "koa-router": "^10.0.0",
     "moment": "^2.29.1",
     "node-rsa": "^1.1.1",
+    "node-xlsx": "^0.17.1",
     "reflect-metadata": "^0.1.13",
     "request": "^2.88.2",
     "request-promise": "^4.2.6"

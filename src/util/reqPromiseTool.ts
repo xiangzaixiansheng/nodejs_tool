@@ -70,3 +70,16 @@ export async function reqPostPromise(uri: string, params: any, headers?: any) {
         };
     });
 }
+
+//https://www.npmjs.com/package/request-promise
+export async function reqPostPromiseV2(options: any) {
+    return request(options).then(data => {
+        return { status: 1, data };
+    }).catch(err => {
+        return {
+            status: 0,
+            data: err,
+            statusInfo: '未知错误!'
+        };
+    });
+}
