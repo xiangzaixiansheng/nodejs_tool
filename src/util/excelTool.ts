@@ -2,7 +2,7 @@
 import xlsx from 'node-xlsx';
 import * as fs from 'fs';
 
-class excelTool {
+export class excelTool {
 
     public parseXlsxFile(path: string): string[][] {
         if (!path) {
@@ -10,16 +10,15 @@ class excelTool {
         }
 
         const [result] = xlsx.parse(fs.readFileSync(path));
-        fs.unlink(path, (err) => {
-            if (err) {
-                console.log('[parseXlsxFile]: 文件删除失败！', err.message || err);
-            }
-        });
-
         return result.data as string[][];
     }
-
-    public getDataFromExcelData(data: string[][]) {
+    /**
+     * @description 数据转成json
+     * @param data 
+     * @param format excel标题中的字段转成指定字段{'序号':"id" }
+     * @returns 
+     */
+    public getDataFromExcelData(data: string[][], format: { [key: string]: string } = {}) {
         data = data.slice();
         const fields = data.shift();
         data = data.filter((item) => !!item.length);
@@ -36,7 +35,7 @@ class excelTool {
             } = {};
             item.forEach((value, index) => {
                 //@ts-ignore
-                const field = fields[index];
+                const field = format[fields[index]] || fields[index];
                 ret[field] = value;
             });
             list.push(ret);
@@ -44,7 +43,7 @@ class excelTool {
 
         return list;
     }
-    
+
     /**
      * 生成表格
      * @param listData 数据json对象
@@ -69,7 +68,7 @@ class excelTool {
 
         return xlsx.build([
             {
-                name: '默认模板',
+                name: '模板',
                 data: [fields, ...group]
             }
         ]);
