@@ -8,6 +8,7 @@ const koaBody = require("koa-body");
 import Koa, { Context } from 'koa';              // 导入koa
 import Router from "koa-router";    // 导入koa-router
 import createConnection from "./glues";
+import { loggerMiddleware } from './util/logger'
 
 class App {
     /**
@@ -30,6 +31,9 @@ class App {
     private async init() {
         // koa(这个放第一个,要不然跨域会无效)
         this.app.use(cors());
+
+        // Logger
+        this.app.use(loggerMiddleware);
 
         // 接收文件上传
         this.app.use(koaBody({

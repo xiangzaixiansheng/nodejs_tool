@@ -2,6 +2,7 @@ import { redis_tool } from '../util/redisTool';
 import { sortBy, arrayChunk } from '../util/arrayTool';
 import { reqGetPromise } from '../util/reqPromiseTool';
 import { get } from '../util/requestTool';
+import { logger } from '../util/logger';
 
 export class ApiService {
 
@@ -34,9 +35,9 @@ export class ApiService {
         let result2 = sortBy(testArray, (item) => -item); //倒序
         let chunk = arrayChunk(testArray, 3); //[ [ 8, 9, 2 ], [ 1, 0, 6 ] ]
 
-        console.error(result1);
-        console.error(result2);
-        console.error(chunk);
+        logger.error(result1);
+        logger.error(result2);
+        logger.error(chunk);
 
         class Student {
             public name: any
