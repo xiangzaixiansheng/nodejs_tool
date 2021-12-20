@@ -1,3 +1,8 @@
+/**
+ * @description redis操作封装方法
+ * @author xiangzai
+ */
+
 import ioredis = require('ioredis');
 //import * as ioredis from "ioredis";
 

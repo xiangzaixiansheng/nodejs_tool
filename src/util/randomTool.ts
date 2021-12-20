@@ -1,4 +1,9 @@
 /**
+ * @description 获取随机数的方法
+ * @author xiangzai
+ */
+
+/**
  * 获取随机小写英文单词
  */
 export function getRandomLower() {

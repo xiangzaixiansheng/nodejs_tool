@@ -1,8 +1,8 @@
-import moment = require("moment");
 /**
- * author: xiangzai
- * @desc：时间格式化/获取时间差
+ * @description 时间格式化/获取时间差
+ * @author xiangzai
  */
+import moment = require("moment");
 export class DateFormat {
     /**
      * 根据时间戳格式化时间
