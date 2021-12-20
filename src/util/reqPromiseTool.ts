@@ -2,6 +2,7 @@
 * @file: request-promise 二次封装
 * @Author: xiangzai
 */
+
 import request from 'request-promise';
 //import * as request from 'request-promise';
 var BufferHelper = require('bufferhelper');

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reqPostPromise = exports.reqGetPromise = void 0;
+exports.reqPostPromiseV2 = exports.reqPostPromise = exports.reqGetPromise = void 0;
 const request_promise_1 = __importDefault(require("request-promise"));
 var BufferHelper = require('bufferhelper');
 var iconv = require('iconv-lite');
@@ -63,3 +63,15 @@ async function reqPostPromise(uri, params, headers) {
     });
 }
 exports.reqPostPromise = reqPostPromise;
+async function reqPostPromiseV2(options) {
+    return request_promise_1.default(options).then(data => {
+        return { status: 1, data };
+    }).catch(err => {
+        return {
+            status: 0,
+            data: err,
+            statusInfo: '未知错误!'
+        };
+    });
+}
+exports.reqPostPromiseV2 = reqPostPromiseV2;

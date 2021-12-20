@@ -1,64 +1,14 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.limiterRedis = exports.redisDb0 = void 0;
-const ioredis = require("ioredis");
+exports.redis_tool = void 0;
 const Redlock = require("redlock");
-const config_1 = __importDefault(require("../config"));
-const redisConfig = config_1.default().redis;
-const clientCreate = (config, callback) => {
-    const redis = new ioredis(config);
-    redis.on("connect", () => {
-        callback(null, redis);
-    });
-    redis.on("error", (err) => {
-        callback(err, null);
-    });
-};
-const redisConnect = (config) => {
-    return new Promise((resolve, reject) => {
-        clientCreate(config, (err, conn) => {
-            if (err) {
-                reject(err);
-            }
-            resolve(conn);
-        });
-    });
-};
+const redis_1 = require("../glues/redis");
 class RedisTool {
-    constructor(opt) {
-        opt ? (this.config = Object.assign(redisConfig, opt)) : (this.config = redisConfig);
-        this.connToRedis()
-            .then((res) => {
-            if (res) {
-                console.log("redis连接成功!");
-            }
-        })
-            .catch((e) => {
-            console.error("Redis连接错误:" + e);
-        });
-    }
-    async connToRedis() {
-        return new Promise((resolve, reject) => {
-            if (this.redis) {
-                resolve(true);
-            }
-            else {
-                redisConnect(this.config)
-                    .then((resp) => {
-                    this.redis = resp;
-                    this.redlock = new Redlock([this.redis], {
-                        "retryDelay": 200,
-                        "retryCount": 1,
-                    });
-                    resolve(true);
-                })
-                    .catch((err) => {
-                    reject(err);
-                });
-            }
+    constructor(_redis) {
+        this.redis = _redis;
+        this.redlock = new Redlock([this.redis], {
+            "retryDelay": 200,
+            "retryCount": 1,
         });
     }
     async lock(ressource) {
@@ -71,21 +21,16 @@ class RedisTool {
         }
     }
     async unlockLock(lock) {
-        lock.unlock(function (err) {
-            if (err) {
-                console.log("解锁失败" + err);
-            }
-            else {
-                console.log("解锁成功");
-            }
+        return await lock.unlock().then((res) => {
+            console.log("解锁成功");
+        }).catch((e) => {
+            console.log("解锁失败" + e);
         });
     }
     async setString(key, value) {
         const val = typeof value !== "string" ? JSON.stringify(value) : value;
         try {
-            let res = await this.redis.set(key, val);
-            console.error(res);
-            return res;
+            return await this.redis.set(key, val);
         }
         catch (e) {
             console.error(e);
@@ -359,5 +304,4 @@ class RedisTool {
         });
     }
 }
-exports.redisDb0 = new RedisTool({ "db": 0 });
-exports.limiterRedis = new ioredis(redisConfig);
+exports.redis_tool = new RedisTool(redis_1.redis);

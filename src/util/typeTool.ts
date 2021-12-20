@@ -1,5 +1,6 @@
 /**
- * 判断类型
+ * @description 类型判断的方法
+ * @author xiangzai
  * 
  */
 

@@ -1,4 +1,5 @@
 import axios, { AxiosRequestConfig } from "axios";
+//https://github.com/axios/axios 参数参考
 
 /**
  * 

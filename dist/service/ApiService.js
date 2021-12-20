@@ -7,9 +7,9 @@ const reqPromiseTool_1 = require("../util/reqPromiseTool");
 const requestTool_1 = require("../util/requestTool");
 class ApiService {
     async testRedis() {
-        let res = await redisTool_1.redisDb0.setString("test", { hello: "hello" });
-        let res2 = await redisTool_1.redisDb0.hset("testJson", "userName", "haha");
-        let res3 = await redisTool_1.redisDb0.scan("*", 100);
+        await redisTool_1.redis_tool.setString("test", { hello: "hello" });
+        await redisTool_1.redis_tool.hset("testJson", "userName", "haha");
+        let res3 = await redisTool_1.redis_tool.scan("*", 100);
         return res3;
     }
     async testArray(query) {

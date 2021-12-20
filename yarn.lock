@@ -208,6 +208,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/node-xlsx@^0.15.2":
+  version "0.15.2"
+  resolved "https://registry.nlark.com/@types/node-xlsx/download/@types/node-xlsx-0.15.2.tgz#1371c4af8fe2b6626253f8b85719adfe88355b20"
+  integrity sha1-E3HEr4/itmJiU/i4Vxmt/og1WyA=
+
 "@types/node@*", "@types/node@^15.12.4":
   version "15.12.4"
   resolved "https://registry.nlark.com/@types/node/download/@types/node-15.12.4.tgz?cache=0&sync_timestamp=1624050302481&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40types%2Fnode%2Fdownload%2F%40types%2Fnode-15.12.4.tgz#e1cf817d70a1e118e81922c4ff6683ce9d422e26"
