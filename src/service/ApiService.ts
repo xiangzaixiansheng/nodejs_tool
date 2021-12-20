@@ -1,22 +1,29 @@
-import { redisDb0 } from '../util/redisTool';
+import { redis_tool } from '../util/redisTool';
 import { sortBy, arrayChunk } from '../util/arrayTool';
 import { reqGetPromise } from '../util/reqPromiseTool';
 import { get } from '../util/requestTool';
 
 export class ApiService {
 
-    //测试读写redis
+    /**
+     * @description redis_tool 测试读写redis
+     * @returns 
+     */
     public async testRedis() {
         //测试set
-        let res = await redisDb0.setString("test", { hello: "hello" });
+        await redis_tool.setString("test", { hello: "hello" });
         //测试hset和加锁
-        let res2 = await redisDb0.hset("testJson", "userName", "haha");
+        await redis_tool.hset("testJson", "userName", "haha");
         //测试scan方法
-        let res3 = await redisDb0.scan("*", 100);
+        let res3 = await redis_tool.scan("*", 100);
         return res3;
     }
 
-    //测试数组相关的
+    /**
+     * @description arrayTool 测试数组相关的
+     * @param query 
+     * @returns 
+     */
     public async testArray(query?: any) {
         if (query && query.array) {
             return sortBy(query.array.split(","));

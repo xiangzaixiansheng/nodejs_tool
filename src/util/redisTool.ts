@@ -3,20 +3,13 @@ import ioredis = require('ioredis');
 
 import Redlock = require("redlock");
 
-import getConfig from "../config";
+import { redis } from "../glues/redis";
 
 /**
  * author: xiangzai
  * @desc：redis链接
  * 
  */
-
-
-/**
- * 初始化配置, 地址和端口
- */
-const redisConfig: RedisConfig = getConfig().redis;
-
 // tslint:disable-next-line:class-name
 export interface redisTool {
     /**
@@ -36,67 +29,7 @@ export interface redisTool {
      * @param key key
      */
     del(key: string): Promise<number | null>;
-
-    /**
-     * 连接redis
-     */
-    connToRedis(): Promise<unknown>;
 }
-/**
- * 定义配置参数
- */
-interface RedisConfig {
-    /**
-     * 端口
-     */
-    port: number;
-    /**
-     * 地址
-     */
-    host: string;
-    /**
-     * 密码
-     */
-    password?: string;
-    /**
-     * 数据库
-     */
-    db?: number;
-    /**
-     * family
-     */
-    family?: number;
-}
-
-/**
- * 创建连接
- */
-const clientCreate = (config: RedisConfig, callback: any) => {
-    const redis: ioredis.Redis = new ioredis(config);
-    redis.on("connect", () => {
-        // 根据 connect 事件判断连接成功
-        callback(null, redis); // 链接成功， 返回 redis 连接对象
-    });
-    redis.on("error", (err: any) => {
-        // 根据 error 事件判断连接失败
-        callback(err, null); // 捕捉异常， 返回 error
-    });
-};
-
-/**
- * 创建连接返回 promise
- * @param config 配置
- */
-const redisConnect = (config: RedisConfig) => {
-    return new Promise((resolve, reject) => {
-        clientCreate(config, (err: any, conn: ioredis.Redis) => {
-            if (err) {
-                reject(err);
-            }
-            resolve(conn); // 返回连接的redis对象
-        });
-    });
-};
 
 /**
  * author: xiangzai
@@ -112,47 +45,13 @@ class RedisTool implements redisTool {
      * https://github.com/mike-marcacci/node-redlock
      */
     public redlock!: Redlock;
-    /**
-     * redis的配置
-     */
-    public config: RedisConfig;
 
-    constructor(opt?: any) {
-        //this.redis = "NONE";
-        opt ? (this.config = Object.assign(redisConfig, opt)) : (this.config = redisConfig);
-        this.connToRedis()
-            .then((res) => {
-                if (res) {
-                    console.log("redis连接成功!");
-                }
-            })
-            .catch((e) => {
-                console.error("Redis连接错误:" + e);
-            });
-    }
 
-    /**
-     * 连接redis
-     */
-    public async connToRedis() {
-        return new Promise((resolve, reject) => {
-            if (this.redis) {
-                resolve(true); // 已创建
-            } else {
-                redisConnect(this.config)
-                    .then((resp) => {
-                        this.redis = <ioredis.Redis>resp;
-                        // 初始化锁
-                        this.redlock = new Redlock([this.redis], {
-                            "retryDelay": 200, // 两次尝试之间的时间间隔ms
-                            "retryCount": 1, // 最大次数Redlock将尝试
-                        });
-                        resolve(true);
-                    })
-                    .catch((err) => {
-                        reject(err);
-                    });
-            }
+    constructor(_redis: ioredis.Redis) {
+        this.redis = _redis;
+        this.redlock = new Redlock([this.redis], {
+            "retryDelay": 200, // 两次尝试之间的时间间隔ms
+            "retryCount": 1, // 最大次数Redlock将尝试
         });
     }
 
@@ -175,12 +74,10 @@ class RedisTool implements redisTool {
      * @param lock 锁对象
      */
     public async unlockLock(lock: any) {
-        lock.unlock(function (err: any) {
-            if (err) {
-                console.log("解锁失败" + err);
-            } else {
-                console.log("解锁成功");
-            }
+        return await lock.unlock().then((res: any) => {
+            console.log("解锁成功");
+        }).catch((e: any) => {
+            console.log("解锁失败" + e);
         });
     }
 
@@ -193,9 +90,7 @@ class RedisTool implements redisTool {
     public async setString(key: string, value: any) {
         const val: string = typeof value !== "string" ? JSON.stringify(value) : value;
         try {
-            let res = await this.redis.set(key, val);
-            console.error(res);
-            return res;
+            return await this.redis.set(key, val);
         } catch (e) {
             // tslint:disable-next-line:no-console
             console.error(e);
@@ -209,7 +104,7 @@ class RedisTool implements redisTool {
      * @param value value
      * @returns "OK" or null
      */
-     public async set(key: string, value: any) {
+    public async set(key: string, value: any) {
         try {
             let res = await this.redis.set(key, value);
             return res;
@@ -624,6 +519,4 @@ class RedisTool implements redisTool {
  * 每次个模块调用redis的时候，始终是取第一次生成的实例，避免了多次连接redis的尴尬
  * 
  */
-export const redisDb0 = new RedisTool({ "db": 0 });
-export const limiterRedis = new ioredis(redisConfig);
-// export const redis_db2 = new RedisTool({db:2})
+export const redis_tool = new RedisTool(redis);
