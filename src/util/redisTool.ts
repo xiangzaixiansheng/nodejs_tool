@@ -120,16 +120,20 @@ class RedisTool implements redisTool {
         }
     }
 
-    /**
-     * 获取string类型的key-value
-     * @param key string
-     * @return value
-     */
     public async getString(key: string) {
+        const data: any = await this.redis.get(key);
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            return data;
+        }
+    }
+
+    public async get(key: string) {
         try {
             return await this.redis.get(key);
         } catch (e) {
-            // tslint:disable-next-line:no-console
+            //@ts-ignore
             console.error(e.stack);
             return null;
         }
@@ -144,6 +148,7 @@ class RedisTool implements redisTool {
             return await this.redis.mget(keys);
         } catch (e) {
             // tslint:disable-next-line:no-console
+            //@ts-ignore
             console.error(e.stack);
             return null;
         }
@@ -158,6 +163,7 @@ class RedisTool implements redisTool {
             return await this.redis.keys(keys);
         } catch (e) {
             // tslint:disable-next-line:no-console
+            //@ts-ignore
             console.error(e.stack);
             return null;
         }
@@ -471,9 +477,9 @@ class RedisTool implements redisTool {
      * @param key key
      * @param expiration 单位长度:秒
      */
-    public async expire(key: string, expiration: number) {
+    public expire(key: string, expiration: number) {
         try {
-            return await this.redis.expire(key, expiration);
+            return this.redis.expire(key, expiration);
         } catch (e) {
             // tslint:disable-next-line:no-console
             console.error(e);
@@ -515,6 +521,27 @@ class RedisTool implements redisTool {
             }
             scanNext();
         });
+    }
+
+    public unlink(key: string) {
+        return this.redis.unlink(key);
+    }
+
+    /**
+     * 优雅的删除redis中的某一类key
+     * @param pattern 'hello*'
+     * @param time  间隔多少秒删除一条数据
+     */
+    public async goodDEl(pattern: string, time: number) {
+        let result = await this.scan(pattern, 100);
+        //@ts-ignore
+        console.info(`[RedisTool]:goodDEl 一共需要删除key的数量`, result.length);
+        //@ts-ignore
+        for (let key of result) {
+            console.info(`[RedisTool]:goodDEl 已经删除的key`, key);
+            await new Promise(resolve => setTimeout(resolve, time * 1000));
+            await this.unlink(key);
+        }
     }
 
 }
