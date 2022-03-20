@@ -9,6 +9,7 @@ import Koa, { Context } from 'koa';              // 导入koa
 import Router from "koa-router";    // 导入koa-router
 import createConnection from "./glues";
 import { loggerMiddleware } from './util/logger'
+import { profiler } from "./util/v8Profiler";
 
 class App {
     /**
@@ -71,3 +72,6 @@ class App {
 const app = new App();
 
 app.start();
+
+//记录v8快照的
+//new profiler().start();
