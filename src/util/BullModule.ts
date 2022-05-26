@@ -81,7 +81,8 @@ export class BullModule {
      * @param obj 对象json
      */
     public async objImpl(obj: any) {
-        console.info(JSON.stringify(obj.data))
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        console.info("消费任务", JSON.stringify(obj.data))
     }
 
     /**
@@ -89,6 +90,7 @@ export class BullModule {
      * @param obj 对象
      */
     public async activeImpl(obj: any) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
         console.info(JSON.stringify(obj.data));
     }
 
@@ -102,13 +104,14 @@ export class BullModule {
      * @param obj 需要保存的对象
      * @param objName json对象名称,在执行消息队列方法中判断对象使用
      */
-    public async saveObj(obj: any, objName: string) {
+    public async saveObj(obj: any, objName: string, jobId: number) {
         try {
             // 添加到对象保存队列中处理
             // tslint:disable-next-line:object-literal-key-quotes
             (await this.getQueue()).add(queue1, { [objName]: obj, objName: objName }, {
-                removeOnComplete: true
-            });
+                removeOnComplete: true,
+                jobId ////jobId is unique. If you attempt to add a job with an id that already exists, it will not be added.
+            }).then(res => { console.info(`saveObj==${JSON.stringify(res)}`) }).catch(e => { console.info(`saveObj error==${JSON.stringify(e)}`) });
         } catch (error) {
             console.log("添加到队列中处理错误");
         }
@@ -131,13 +134,13 @@ export class BullModule {
         }
     }
 }
-
+export default new BullModule();
 
 // const bull_test = new BullModule();
 
 // (async function test() {
 //     for (let index = 0; index < 10; index++) {
-//         bull_test.saveObj({ test: index }, "testqueue")
-//         await new Promise(resolve => setTimeout(resolve, 3000));
+//         bull_test.saveObj({ test: index }, "testqueue", 1)
+//         //await new Promise(resolve => setTimeout(resolve, 3000));
 //     }
 // })()
