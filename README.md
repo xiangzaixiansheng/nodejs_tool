@@ -37,3 +37,8 @@ treer -i node_modules  result.txt
 |  |  ├─typeTool.ts 判断类型相关  
 |  |  ├─decorator  
 |  |  |     └httpMethod.ts  
+
+
+
+修改本地remote
+git remote set-url origin (新的git地址)
