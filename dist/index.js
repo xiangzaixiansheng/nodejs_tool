@@ -12,6 +12,7 @@ const koaBody = require("koa-body");
 const koa_1 = __importDefault(require("koa"));
 const koa_router_1 = __importDefault(require("koa-router"));
 const glues_1 = __importDefault(require("./glues"));
+const logger_1 = require("./util/logger");
 class App {
     constructor() {
         this.app = new koa_1.default();
@@ -22,6 +23,7 @@ class App {
     }
     async init() {
         this.app.use(cors());
+        this.app.use(logger_1.loggerMiddleware);
         this.app.use(koaBody({
             "multipart": true,
             "formidable": {

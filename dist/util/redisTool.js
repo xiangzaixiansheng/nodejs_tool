@@ -48,6 +48,15 @@ class RedisTool {
         }
     }
     async getString(key) {
+        const data = await this.redis.get(key);
+        try {
+            return JSON.parse(data);
+        }
+        catch (e) {
+            return data;
+        }
+    }
+    async get(key) {
         try {
             return await this.redis.get(key);
         }
@@ -267,9 +276,9 @@ class RedisTool {
             return null;
         }
     }
-    async expire(key, expiration) {
+    expire(key, expiration) {
         try {
-            return await this.redis.expire(key, expiration);
+            return this.redis.expire(key, expiration);
         }
         catch (e) {
             console.error(e);
@@ -302,6 +311,18 @@ class RedisTool {
             }
             scanNext();
         });
+    }
+    unlink(key) {
+        return this.redis.unlink(key);
+    }
+    async goodDEl(pattern, time) {
+        let result = await this.scan(pattern, 100);
+        console.info(`[RedisTool]:goodDEl 一共需要删除key的数量`, result.length);
+        for (let key of result) {
+            console.info(`[RedisTool]:goodDEl 已经删除的key`, key);
+            await new Promise(resolve => setTimeout(resolve, time * 1000));
+            await this.unlink(key);
+        }
     }
 }
 exports.redis_tool = new RedisTool(redis_1.redis);

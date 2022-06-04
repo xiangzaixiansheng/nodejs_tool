@@ -5,6 +5,7 @@ const redisTool_1 = require("../util/redisTool");
 const arrayTool_1 = require("../util/arrayTool");
 const reqPromiseTool_1 = require("../util/reqPromiseTool");
 const requestTool_1 = require("../util/requestTool");
+const logger_1 = require("../util/logger");
 class ApiService {
     async testRedis() {
         await redisTool_1.redis_tool.setString("test", { hello: "hello" });
@@ -20,9 +21,9 @@ class ApiService {
         let result1 = arrayTool_1.sortBy(testArray);
         let result2 = arrayTool_1.sortBy(testArray, (item) => -item);
         let chunk = arrayTool_1.arrayChunk(testArray, 3);
-        console.error(result1);
-        console.error(result2);
-        console.error(chunk);
+        logger_1.logger.error(result1);
+        logger_1.logger.error(result2);
+        logger_1.logger.error(chunk);
         class Student {
             constructor(name, age) {
                 this.name = name;

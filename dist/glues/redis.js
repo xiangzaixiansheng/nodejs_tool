@@ -20,3 +20,18 @@ function createRedisConnection() {
     });
 }
 exports.createRedisConnection = createRedisConnection;
+function RedisKeyExpire() {
+    const db = redisConfig.db || "0";
+    redis.send_command('config', ['set', 'notify-keyspace-events', 'Ex'])
+        .then((res) => {
+        const expired_subKey = `__keyevent@${db}__:expired`;
+        const sub = new Redis(redisConfig);
+        sub.subscribe(expired_subKey, function () {
+            sub.on('message', function (info, expireKey) {
+                console.info(`监听到过期的rediskey ${expireKey}`);
+            });
+        });
+    }).catch((err) => {
+        console.error("error", err);
+    });
+}

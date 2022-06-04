@@ -43,5 +43,69 @@ class DateFormat {
         const today = moment();
         return today.subtract(days, "days").format("YYYY-MM-DD");
     }
+    getRangeTimeList(step, num = 50, displayTimeFormat = 'YYYY-MM-DD', rangeTimeFormat = 'YYYY-MM-DD') {
+        moment.locale('zh-cn');
+        let now = moment();
+        let result = [];
+        const oneDayTime = 24 * 3600;
+        let currentUnix = now.unix();
+        const getTimeRange = (begin, end) => {
+            return [begin.format(rangeTimeFormat), end.format(rangeTimeFormat)];
+        };
+        const getDisplayTime = (begin, end) => {
+            return begin.format(displayTimeFormat) + '-' + end.format(displayTimeFormat);
+        };
+        const getYearMonth = (begin) => {
+            return begin.format('YYYY-MM');
+        };
+        if (step === 'day') {
+            for (let k = 1; k <= num; k++) {
+                const obj = {};
+                const day = moment.unix(currentUnix);
+                obj.timeRange = getTimeRange(day, day);
+                obj.tooltip = getDisplayTime(day, day);
+                result.push(obj);
+                currentUnix -= oneDayTime;
+            }
+        }
+        if (step === 'week') {
+            const lastWeek = {};
+            const firstDay = moment(now).weekday(0);
+            lastWeek.timeRange = getTimeRange(firstDay, now);
+            lastWeek.tooltip = getDisplayTime(firstDay, now);
+            currentUnix = firstDay.unix();
+            result.push(lastWeek);
+            for (let k = 2; k <= num; k++) {
+                const obj = {};
+                const sunday = moment.unix(currentUnix - oneDayTime);
+                const monday = moment(moment.unix(currentUnix - oneDayTime).weekday(0));
+                obj.timeRange = getTimeRange(monday, sunday);
+                obj.tooltip = getDisplayTime(monday, sunday);
+                result.push(obj);
+                currentUnix -= oneDayTime * 7;
+            }
+        }
+        if (step === 'month') {
+            const lastMonth = {};
+            const firstDate = moment(now).date(1);
+            lastMonth.timeRange = getTimeRange(firstDate, now);
+            lastMonth.tooltip = getDisplayTime(firstDate, now);
+            lastMonth.monthKey = getYearMonth(firstDate);
+            currentUnix = firstDate.unix();
+            result.push(lastMonth);
+            for (let k = 2; k <= num; k++) {
+                const obj = {};
+                const dayLast = moment.unix(currentUnix - oneDayTime);
+                const n = dayLast.date();
+                const day1 = moment(moment.unix(currentUnix - oneDayTime).date(1));
+                obj.timeRange = getTimeRange(day1, dayLast);
+                obj.tooltip = getDisplayTime(day1, dayLast);
+                obj.monthKey = getYearMonth(dayLast);
+                result.push(obj);
+                currentUnix -= oneDayTime * n;
+            }
+        }
+        return result;
+    }
 }
 exports.DateFormat = DateFormat;
