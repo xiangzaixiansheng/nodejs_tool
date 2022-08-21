@@ -2,8 +2,19 @@ import cors = require("@koa/cors");
 import { getLimiterConfig } from "./util/limiterReq";
 import { addRouter } from "./routes/routes";
 import { redis } from "./glues/redis";
+import * as path from "path";
+import * as fs from "fs-extra";
+
 const ratelimit = require("koa-ratelimit");
 const koaBody = require("koa-body");
+
+const serve = require("koa-static");
+const views = require("koa-views");
+
+
+const uploadDir = __dirname + "/uploads";
+fs.ensureDir(uploadDir);
+
 
 import Koa, { Context } from 'koa';              // 导入koa
 import Router from "koa-router";    // 导入koa-router
@@ -36,16 +47,43 @@ class App {
         // Logger
         this.app.use(loggerMiddleware);
 
+        //链接数据库
+        await createConnection();
+        //把配置模板引擎的代码移动到所有与路由相关的代码之前, TypeError: ctx.render is not a function
+        this.app.use(
+            serve(
+                path.join(
+                    __dirname,
+                    process.env.NODE_ENV === "dev" ? "../public" : "./public"
+                ),
+                {
+                    index: false,
+                    hidden: false,
+                    defter: true,
+                }
+            )
+        );
+
+        this.app.use(
+            views("public", {
+                map: {
+                    html: "ejs"
+                }
+            })
+        )
+
         // 接收文件上传
         this.app.use(koaBody({
             "multipart": true,
             "formidable": {
-                "maxFileSize": 200 * 1024 * 1024	// 设置上传文件大小最大限制，默认2M
+                "maxFileSize": 200 * 1024 * 1024,	// 设置上传文件大小最大限制，默认2M
+                // 上传目录
+                uploadDir,
+                // 保留文件扩展名
+                keepExtensions: true,
             }
         }));
 
-        //链接数据库
-        await createConnection();
 
         // http请求次数限制(目前使用用户的ip来限制的)
         this.app.use(ratelimit((getLimiterConfig((ctx: Context) => ctx.ip, redis))));

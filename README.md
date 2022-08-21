@@ -20,7 +20,7 @@ sudo npm i -g treer
 
 treer -i node_modules  result.txt
 
-├─src  
+├--src  
 |  ├─.DS_Store  
 |  ├─index.ts  
 |  ├─util  
@@ -42,3 +42,13 @@ treer -i node_modules  result.txt
 
 修改本地remote
 git remote set-url origin (新的git地址)
+
+
+
+TODO:
+
+1⃣️增加PM2配置
+
+2⃣️增加网页加载
+
+3⃣️增加mysql连接，数据库操作
