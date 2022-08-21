@@ -1,0 +1,23 @@
+{
+    "apps": [{
+        "name": "app",
+        "script": "./dist/index.js",
+        "exec_mode": "cluster",
+        "instances": 0,
+        "max_restarts": 20,
+        "env": {
+            "NODE_ENV": "dev"
+        },
+        "watch": true,
+        "ignore_watch": [
+            "node_modules",
+            "logs"
+        ],
+        "env_production": {
+            "NODE_ENV": "prod"
+        },
+        "error_file": "logs/err.log",
+        "out_file": "logs/out.log",
+        "log_date_format": "YYYY-MM-DD HH:mm:ss"
+    }]
+}

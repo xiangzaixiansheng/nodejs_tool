@@ -1,3 +1,5 @@
+import defaultConfig from "./config.default";
+
 const env = process.env.NODE_ENV || "dev";
 const config = require(`./config.${env}`).default;
 
@@ -7,6 +9,7 @@ if (!config) {
 
 export default () => {
   return {
+    ...defaultConfig,
     ...config
   }
 }

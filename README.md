@@ -52,3 +52,6 @@ TODO:
 2⃣️增加网页加载
 
 3⃣️增加mysql连接，数据库操作
+
+
+NODE_ENV=prod node dist/index.js
