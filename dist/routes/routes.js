@@ -12,7 +12,7 @@ const addRouter = (router) => {
     recursion(ctrPath);
     function recursion(folderName) {
         fs.readdirSync(folderName).forEach((name) => {
-            if (/^[^.]+\.ts$/.test(name)) {
+            if (/^[^.]+\.ts$/.test(name) || /^[^.]+\.js$/.test(name)) {
                 binding(require(path.join(folderName, name)).default, derName);
                 return true;
             }

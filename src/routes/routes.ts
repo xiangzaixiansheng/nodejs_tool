@@ -9,17 +9,17 @@ import { ROUTER_MAP } from '../constant/constants';
  * 路由类型
  */
 type RouteMeta = {
-	/**
-	 * 路由名称
-	 */
+    /**
+     * 路由名称
+     */
     name: string;
-	/**
-	 * 方法名称
-	 */
+    /**
+     * 方法名称
+     */
     method: string;
-	/**
-	 * 路径
-	 */
+    /**
+     * 路径
+     */
     path: string;
 };
 
@@ -35,18 +35,19 @@ const addRouter = (router: any) => {
     let derName = "";
     recursion(ctrPath);
 
-	/**
-	 * 递归获取所有ts文件添加到路由
-	 * @param m 方法
-	 * @param derName 文件名
-	 */
+    /**
+     * 递归获取所有ts文件添加到路由
+     * @param m 方法
+     * @param derName 文件名
+     */
     // tslint:disable-next-line:completed-docs
     function recursion(folderName: string) {
         // 递归扫描所有文件夹内的文件添加到路由
         // 拿到具体文件
         fs.readdirSync(folderName).forEach((name) => {
 
-            if (/^[^.]+\.ts$/.test(name)) {
+            //fix:修复build后的产物也可以加在router
+            if (/^[^.]+\.ts$/.test(name) || /^[^.]+\.js$/.test(name)) {
                 binding(require(path.join(folderName, name)).default, derName);
                 return true;
             }
@@ -66,11 +67,11 @@ const addRouter = (router: any) => {
         });
     }
 
-	/**
-	 * 结合meta数据添加路由
-	 * @param m 方法
-	 * @param derName 文件名
-	 */
+    /**
+     * 结合meta数据添加路由
+     * @param m 方法
+     * @param derName 文件名
+     */
     // tslint:disable-next-line:completed-docs
     function binding(m: ObjectConstructor, derName: string) {
         const routerMap: RouteMeta[] = Reflect.getMetadata(ROUTER_MAP, m, "method") || [];
