@@ -40,18 +40,22 @@ treer -i node_modules  result.txt
 
 
 
-修改本地remote
-git remote set-url origin (新的git地址)
-
-
-
 TODO:
 
 1⃣️增加PM2配置
 
-2⃣️增加网页加载
+2⃣️~~增加网页加载~~
 
-3⃣️增加mysql连接，数据库操作
+3⃣️~~增基于typeorm的mysql连接，数据库操作~~
+
 
 
 NODE_ENV=prod node dist/index.js
+
+
+
+HTTP-SERVER上传文件
+
+主要是有的时候可能需要起一个httpserver来接收文件
+
+curl -F "file=@文件名" -X POST "http://localhost:8080/api/uploadFile"

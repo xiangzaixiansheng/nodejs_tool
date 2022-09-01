@@ -33,7 +33,7 @@ export default class AuthController {
         let query = ctx.query;
         return ctx.body = await wrap(this.service.testArray(query));
     }
-    
+
     /**
      * 测试 request-Promise
      * @param ctx 
@@ -43,4 +43,12 @@ export default class AuthController {
     public async testRequestV1(ctx: Context) {
         return ctx.body = await wrap(this.service.testRequestV1());
     }
+
+    //上传文件
+    //curl -F "file=@文件名" -X POST "http://localhost:8080/api/uploadFile"
+    @post("/uploadFile")
+    public async uploadFile(ctx: Context) {
+        ctx.body = await wrap(Promise.resolve("success"));
+    }
+    
 }
