@@ -76,7 +76,7 @@ class App {
         this.app.use(koaBody({
             "multipart": true,
             "formidable": {
-                "maxFileSize": 200 * 1024 * 1024,	// 设置上传文件大小最大限制，默认2M
+                //"maxFileSize": 20 * 1024 * 1024,	// 设置上传文件大小最大限制，默认2M
                 // 上传目录
                 uploadDir,
                 // 保留文件扩展名
@@ -100,8 +100,8 @@ class App {
     }
 
     public start() {
-        this.app.listen(8080, () => {
-            console.log("Server running on http://localhost:8080");
+        this.app.listen(3000, () => {
+            console.log("Server running on http://localhost:3000");
         });
     }
 }
