@@ -73,6 +73,16 @@ class RedisTool implements redisTool {
             return false;
         }
     }
+    
+    /**
+     * 简单的lock
+     * @param key 
+     * @param timeout 
+     * @returns 
+     */
+    public lock2(key: string, timeout: number = 1000): Promise<boolean> {
+        return this.redis.set(key, Date.now(), "EX", timeout, "NX").then(Boolean);
+    }
 
     /**
      * 解锁方法
@@ -493,29 +503,26 @@ class RedisTool implements redisTool {
      * @param amountPerScan 每次scan的槽位
      * @returns 
      */
-    public async scan(pattern: string, amountPerScan: number) {
+    public async scan(pattern: string, amountPerScan: number): Promise<string[]> {
         let _self = this.redis;
-        let cursor: string = '0';
+        const startCursor: string = '0';
         let keys: any[] = [];
+
         return new Promise((resolve, reject) => {
-            function scanNext() {
+            function scanNext(cursor = startCursor) {
                 _self.scan(cursor, 'MATCH', pattern, 'COUNT', amountPerScan, function (err, reply) {
                     if (err) {
                         throw new Error("redis error");
                     }
-
-                    cursor = reply[0];
-                    const keysScan = reply[1];
-
+                    const [cursor, keysScan] = reply;
                     if (keysScan.length) {
-                        keys = keys.concat(keysScan);
+                        keys.push(...keysScan);
                     }
                     if (cursor === '0') {
                         //去重
-                        let result = Array.from(new Set(keys));
-                        return resolve(result);
+                        return resolve(Array.from(new Set(keys)));
                     } else {
-                        return scanNext();
+                        return scanNext(cursor);
                     }
                 });
             }
