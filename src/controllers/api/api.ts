@@ -1,4 +1,5 @@
 import { Context } from "koa";
+import fs from 'fs';
 import { ApiService } from "../../service/ApiService";
 import { wrap } from '../../util/requestRes';
 import { post, get, put, del } from "../../util/decorator/httpMethod";
@@ -50,5 +51,13 @@ export default class AuthController {
     public async uploadFile(ctx: Context) {
         ctx.body = await wrap(Promise.resolve("success"));
     }
-    
+
+    @get('/download')
+    public async download(ctx: Context) {
+        const filename = "readMe.txt"
+        ctx.set('Content-Type', 'application/vnd.openxmlformats');
+        ctx.set('Content-Disposition', 'attachment; filename=' + filename);
+        ctx.body = fs.readFileSync(__dirname + `/../../download/${filename}`)
+    }
+
 }
