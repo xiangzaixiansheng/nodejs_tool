@@ -20,6 +20,9 @@ class RedisTool {
             return false;
         }
     }
+    lock2(key, timeout = 1000) {
+        return this.redis.set(key, Date.now(), "EX", timeout, "NX").then(Boolean);
+    }
     async unlockLock(lock) {
         return await lock.unlock().then((res) => {
             console.log("解锁成功");
@@ -287,25 +290,23 @@ class RedisTool {
     }
     async scan(pattern, amountPerScan) {
         let _self = this.redis;
-        let cursor = '0';
+        const startCursor = '0';
         let keys = [];
         return new Promise((resolve, reject) => {
-            function scanNext() {
+            function scanNext(cursor = startCursor) {
                 _self.scan(cursor, 'MATCH', pattern, 'COUNT', amountPerScan, function (err, reply) {
                     if (err) {
                         throw new Error("redis error");
                     }
-                    cursor = reply[0];
-                    const keysScan = reply[1];
+                    const [cursor, keysScan] = reply;
                     if (keysScan.length) {
-                        keys = keys.concat(keysScan);
+                        keys.push(...keysScan);
                     }
                     if (cursor === '0') {
-                        let result = Array.from(new Set(keys));
-                        return resolve(result);
+                        return resolve(Array.from(new Set(keys)));
                     }
                     else {
-                        return scanNext();
+                        return scanNext(cursor);
                     }
                 });
             }

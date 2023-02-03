@@ -63,7 +63,6 @@ class App {
         this.app.use(koaBody({
             "multipart": true,
             "formidable": {
-                "maxFileSize": 200 * 1024 * 1024,
                 uploadDir,
                 keepExtensions: true,
             }
@@ -77,8 +76,8 @@ class App {
         });
     }
     start() {
-        this.app.listen(8080, () => {
-            console.log("Server running on http://localhost:8080");
+        this.app.listen(3000, () => {
+            console.log("Server running on http://localhost:3000");
         });
     }
 }
