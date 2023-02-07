@@ -33,11 +33,14 @@ class AuthController {
     async uploadFile(ctx) {
         ctx.body = await requestRes_1.wrap(Promise.resolve("success"));
     }
+    async uploadFileByStream(ctx) {
+        ctx.body = await requestRes_1.wrap(this.service.uploadFileByStream(ctx));
+    }
     async download(ctx) {
         const filename = "readMe.txt";
         ctx.set('Content-Type', 'application/vnd.openxmlformats');
         ctx.set('Content-Disposition', 'attachment; filename=' + filename);
-        ctx.body = fs_1.default.readFileSync(__dirname + `/../../download/${filename}`);
+        ctx.body = fs_1.default.createReadStream(__dirname + `/../../download/${filename}`);
     }
 }
 __decorate([
@@ -64,6 +67,12 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "uploadFile", null);
+__decorate([
+    httpMethod_1.post("/uploadFile2"),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "uploadFileByStream", null);
 __decorate([
     httpMethod_1.get('/download'),
     __metadata("design:type", Function),

@@ -1,4 +1,23 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ApiService = void 0;
 const redisTool_1 = require("../util/redisTool");
@@ -6,6 +25,8 @@ const arrayTool_1 = require("../util/arrayTool");
 const reqPromiseTool_1 = require("../util/reqPromiseTool");
 const requestTool_1 = require("../util/requestTool");
 const logger_1 = require("../util/logger");
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
 class ApiService {
     async testRedis() {
         await redisTool_1.redis_tool.setString("test", { hello: "hello" });
@@ -44,6 +65,18 @@ class ApiService {
         let res = await reqPromiseTool_1.reqGetPromise("http://localhost:8080/api/testArray", { array: "8,9,2,1,3,4", data: "123" });
         let res2 = await requestTool_1.get("http://localhost:8080/api/testArray", { params: { array: "8,9,2,1,3,4", data: "123" } });
         return res2;
+    }
+    async uploadFileByStream(ctx) {
+        const file = ctx.request.files.file;
+        const fileReader = fs.createReadStream(file.path);
+        const filePath = path.join(__dirname, '../uploads/stream');
+        const fileResource = filePath + `/${file.name}`;
+        const writeStream = fs.createWriteStream(fileResource);
+        if (!fs.existsSync(filePath)) {
+            await fs.promises.mkdir(filePath, { recursive: true });
+        }
+        fileReader.pipe(writeStream);
+        return "success";
     }
 }
 exports.ApiService = ApiService;
