@@ -51,13 +51,20 @@ export default class AuthController {
     public async uploadFile(ctx: Context) {
         ctx.body = await wrap(Promise.resolve("success"));
     }
+    //curl -F "file=@文件名" -X POST "http://localhost:3000/api/uploadFile2"
+    @post("/uploadFile2")
+    public async uploadFileByStream(ctx: Context) {
+        ctx.body = await wrap(this.service.uploadFileByStream(ctx));
+    }
 
     @get('/download')
     public async download(ctx: Context) {
         const filename = "readMe.txt"
         ctx.set('Content-Type', 'application/vnd.openxmlformats');
         ctx.set('Content-Disposition', 'attachment; filename=' + filename);
-        ctx.body = fs.readFileSync(__dirname + `/../../download/${filename}`)
+        //ctx.body = fs.readFileSync(__dirname + `/../../download/${filename}`)
+        //基于文件流
+        ctx.body = fs.createReadStream(__dirname + `/../../download/${filename}`)
     }
 
 }

@@ -3,6 +3,9 @@ import { sortBy, arrayChunk } from '../util/arrayTool';
 import { reqGetPromise } from '../util/reqPromiseTool';
 import { get } from '../util/requestTool';
 import { logger } from '../util/logger';
+import * as fs from 'fs';
+import * as path from 'path';
+import { Context } from "koa";
 
 export class ApiService {
 
@@ -64,8 +67,26 @@ export class ApiService {
     //测试请求request-promise接口
     public async testRequestV1() {
         let res = await reqGetPromise("http://localhost:8080/api/testArray", { array: "8,9,2,1,3,4", data: "123" });
-        let res2= await get("http://localhost:8080/api/testArray", { params: { array: "8,9,2,1,3,4", data: "123" } });
+        let res2 = await get("http://localhost:8080/api/testArray", { params: { array: "8,9,2,1,3,4", data: "123" } });
         return res2;
+    }
+
+    //基于文件流上传文件
+    public async uploadFileByStream(ctx: Context) {
+        //@ts-ignore
+        const file = ctx.request.files.file;
+        // 读取文件流
+        const fileReader = fs.createReadStream(file.path);
+        const filePath = path.join(__dirname, '../uploads/stream');
+        // 组装成绝对路径
+        const fileResource = filePath + `/${file.name}`;
+
+        const writeStream = fs.createWriteStream(fileResource);
+        if (!fs.existsSync(filePath)) {
+            await fs.promises.mkdir(filePath, {recursive: true})
+        } 
+        fileReader.pipe(writeStream);
+        return "success"
     }
 
 }
