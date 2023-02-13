@@ -28,3 +28,21 @@ export const exitsFolder = async function (reaPath: string) {
         await fs.promises.mkdir(absPath, { recursive: true })
     }
 }
+
+export const fileType = (file: any) => {
+    const typeList = file.originalname.split('.');
+    const type = typeList.length ? typeList[typeList.length - 1] : ''
+    let dir: string;
+    if (/\.(png|jpe?g|gif|svg)(\?\S*)?$/.test(file.originalname)) {
+        dir = 'images';
+    } else if (/\.(mp3)(\?\S*)?$/.test(file.originalname)) {
+        dir = 'audio';
+    } else if (/\.mp4|avi/.test(file.originalname)) {
+        dir = 'video';
+    } else if (/\.(doc|txt)(\?\S*)?$/.test(file.originalname)) {
+        dir = 'doc';
+    } else {
+        dir = 'other';
+    }
+    return dir;
+};
