@@ -73,7 +73,7 @@ class RedisTool implements redisTool {
             return false;
         }
     }
-    
+
     /**
      * 简单的lock
      * @param key 
@@ -82,6 +82,17 @@ class RedisTool implements redisTool {
      */
     public lock2(key: string, timeout: number = 1000): Promise<boolean> {
         return this.redis.set(key, Date.now(), "EX", timeout, "NX").then(Boolean);
+    }
+
+    public lock3(key: string, timeout: number = 1000): Promise<boolean> {
+        return this.redis.eval(`
+        if redis.call("exists", KEYS[1]) == 1 then
+          return 0
+        end
+        redis.call("set", KEYS[1], ARGV[1], "PX", ARGV[2])
+        return 1
+      `, 1, key, Date.now(), timeout).then(response => response === 0);
+
     }
 
     /**

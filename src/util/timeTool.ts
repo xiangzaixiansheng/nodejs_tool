@@ -23,3 +23,15 @@ export function formatTime(time: Date) {
 function formatNumber(n: number) {
     return n < 10 ? `0${n}` : n;
 }
+
+export const getDate = (time: Date) => {
+    time = new Date(time);
+  
+    const [year, month, date] = [
+      time.getFullYear(),
+      time.getMonth() + 1,
+      time.getDate(),
+    ].map((n) => (n < 10 ? `0${n}` : n));
+  
+    return `${year}-${month}-${date}`;
+  };
