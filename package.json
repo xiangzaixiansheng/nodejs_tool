@@ -63,7 +63,7 @@
         "reflect-metadata": "^0.1.13",
         "request": "^2.88.2",
         "request-promise": "^4.2.6",
-        "typeorm": "^0.3.7",
+        "typeorm": "^0.3.14",
         "uuid": "^8.3.2",
         "v8-profiler-next": "^1.5.1"
     }
