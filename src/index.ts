@@ -21,6 +21,7 @@ import Router from "koa-router";    // 导入koa-router
 import createConnection from "./glues";
 import { loggerMiddleware } from './util/logger'
 import { profiler } from "./util/v8Profiler";
+import { getIp } from "./util/fileTool";
 
 class App {
     /**
@@ -102,6 +103,9 @@ class App {
     public start() {
         this.app.listen(3000, () => {
             console.log("Server running on http://localhost:3000");
+            const IP = getIp();
+            console.log(`本机ip是： ${IP}`)
+            console.log(`上传命令： curl -F "file=@文件名" -X POST "http://${IP}:3000/api/uploadFile"`)
         });
     }
 }
