@@ -23,6 +23,15 @@ class RedisTool {
     lock2(key, timeout = 1000) {
         return this.redis.set(key, Date.now(), "EX", timeout, "NX").then(Boolean);
     }
+    lock3(key, timeout = 1000) {
+        return this.redis.eval(`
+        if redis.call("exists", KEYS[1]) == 1 then
+          return 0
+        end
+        redis.call("set", KEYS[1], ARGV[1], "PX", ARGV[2])
+        return 1
+      `, 1, key, Date.now(), timeout).then(response => response === 0);
+    }
     async unlockLock(lock) {
         return await lock.unlock().then((res) => {
             console.log("解锁成功");

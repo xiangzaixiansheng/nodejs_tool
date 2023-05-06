@@ -38,6 +38,7 @@ const koa_1 = __importDefault(require("koa"));
 const koa_router_1 = __importDefault(require("koa-router"));
 const glues_1 = __importDefault(require("./glues"));
 const logger_1 = require("./util/logger");
+const fileTool_1 = require("./util/fileTool");
 class App {
     constructor() {
         this.app = new koa_1.default();
@@ -78,6 +79,9 @@ class App {
     start() {
         this.app.listen(3000, () => {
             console.log("Server running on http://localhost:3000");
+            const IP = fileTool_1.getIp();
+            console.log(`本机ip是： ${IP}`);
+            console.log(`上传命令： curl -F "file=@文件名" -X POST "http://${IP}:3000/api/uploadFile"`);
         });
     }
 }

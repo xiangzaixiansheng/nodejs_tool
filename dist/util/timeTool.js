@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatTime = exports.getBeforeDaysTmp = exports.getCurTimeStamp = void 0;
+exports.getDate = exports.formatTime = exports.getBeforeDaysTmp = exports.getCurTimeStamp = void 0;
 const getCurTimeStamp = () => {
     return Math.round(new Date().getTime() / 1000);
 };
@@ -18,3 +18,13 @@ exports.formatTime = formatTime;
 function formatNumber(n) {
     return n < 10 ? `0${n}` : n;
 }
+const getDate = (time) => {
+    time = new Date(time);
+    const [year, month, date] = [
+        time.getFullYear(),
+        time.getMonth() + 1,
+        time.getDate(),
+    ].map((n) => (n < 10 ? `0${n}` : n));
+    return `${year}-${month}-${date}`;
+};
+exports.getDate = getDate;
