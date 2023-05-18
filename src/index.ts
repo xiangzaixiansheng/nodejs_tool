@@ -101,12 +101,14 @@ class App {
     }
 
     public start() {
-        this.app.listen(3000, () => {
+        const server = this.app.listen(3000, () => {
             console.log("Server running on http://localhost:3000");
             const IP = getIp();
             console.log(`本机ip是： ${IP}`)
             console.log(`上传命令： curl -F "file=@文件名" -X POST "http://${IP}:3000/api/uploadFile"`)
         });
+        //取消超时时间
+        //server.setTimeout(0);
     }
 }
 
