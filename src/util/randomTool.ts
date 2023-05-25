@@ -7,29 +7,29 @@
  * 获取随机小写英文单词
  */
 export function getRandomLower() {
-    return String.fromCharCode(Math.floor(Math.random() * 26) + 97);
+  return String.fromCharCode(Math.floor(Math.random() * 26) + 97);
 }
 
 /**
  * 获取随机大写英文单词
  */
 export function getRandomUpper() {
-    return String.fromCharCode(Math.floor(Math.random() * 26) + 65);
+  return String.fromCharCode(Math.floor(Math.random() * 26) + 65);
 }
 
 /**
  * 获取随机数字
  */
 export function getRandomNumber() {
-    return String.fromCharCode(Math.floor(Math.random() * 10) + 48);
+  return String.fromCharCode(Math.floor(Math.random() * 10) + 48);
 }
 
 /**
  * 获取随机符号
  */
 export function getRandomSymbol() {
-    const symbols = '~!@#$%^&*()_+{}":?><;.,';
-    return symbols[Math.floor(Math.random() * symbols.length)];
+  const symbols = '~!@#$%^&*()_+{}":?><;.,';
+  return symbols[Math.floor(Math.random() * symbols.length)];
 }
 
 
@@ -38,9 +38,9 @@ export function getRandomSymbol() {
  * @returns {string}
  */
 export function createUniqueString() {
-    const timestamp = +new Date() + '';
-    const randomNum = parseInt(String((1 + Math.random()) * 65536)) + '';
-    return (+(randomNum + timestamp)).toString(32);
+  const timestamp = +new Date() + '';
+  const randomNum = parseInt(String((1 + Math.random()) * 65536)) + '';
+  return (+(randomNum + timestamp)).toString(32);
 }
 
 /**
@@ -48,7 +48,7 @@ export function createUniqueString() {
  * @return {boolean} a random true/false
  */
 export function getRandomBool() {
-    return Math.random() >= 0.5;
+  return Math.random() >= 0.5;
 }
 
 /**
@@ -58,7 +58,7 @@ export function getRandomBool() {
  * @return {number} a random floating point number
  */
 export function getRandomFloat(min: number, max: number) {
-    return Math.random() * (max - min) + min;
+  return Math.random() * (max - min) + min;
 }
 
 /**
@@ -68,5 +68,5 @@ export function getRandomFloat(min: number, max: number) {
  * @return {number} a random integer
  */
 export function getRandomInt(min: number, max: number) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
+  return Math.floor(Math.random() * (max - min + 1) + min);
 }
