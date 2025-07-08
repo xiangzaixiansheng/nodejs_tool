@@ -3,15 +3,34 @@ import path from 'path';
 import axios from 'axios';
 import { URL } from 'url';
 
-export async function downloadFileFromUrl(
+async function downloadFileFromUrl(
   fileUrl: string,
-  targetDirectory: string
+  targetDirectory: string,
+  customFileName?: string // 可选：手动指定文件名
 ): Promise<string> {
   try {
-    // 从 URL 中提取文件名
-    const parsedUrl = new URL(fileUrl);
-    const pathname = parsedUrl.pathname;
-    const fileName = pathname.split('/').pop() || 'downloaded_file';
+    // 尝试从 URL 的查询参数或路径中提取文件名
+    let fileName: string;
+    if (customFileName) {
+      fileName = customFileName;
+    } else {
+      const parsedUrl = new URL(fileUrl);
+      // 情况1：检查路径末尾是否有文件名（如 /example.mp4）
+      const pathParts = parsedUrl.pathname.split('/');
+      const potentialName = pathParts.pop() || '';
+      if (potentialName.includes('.') && !potentialName.startsWith('.')) {
+        fileName = potentialName;
+      } else {
+        // 情况2：从查询参数中提取（如 key=.../filename.mp4）
+        const keyParam = parsedUrl.searchParams.get('key');
+        if (keyParam) {
+          const keyParts = keyParam.split('/');
+          fileName = keyParts.pop() || 'downloaded_file';
+        } else {
+          fileName = 'downloaded_file';
+        }
+      }
+    }
 
     // 确保目标目录存在
     if (!fs.existsSync(targetDirectory)) {
@@ -35,40 +54,23 @@ export async function downloadFileFromUrl(
   }
 }
 
-
-// 同时下载多个字段
-async function downloadAudioAndCover(
-  audioPath: string,
-  coverPath: string,
-  targetDirectory: string
-): Promise<{ audioLocalPath: string; coverLocalPath: string }> {
-  try {
-    // 并行下载音频和封面
-    const [audioLocalPath, coverLocalPath] = await Promise.all([
-      downloadFileFromUrl(audioPath, targetDirectory),
-      downloadFileFromUrl(coverPath, targetDirectory),
-    ]);
-
-    return { audioLocalPath, coverLocalPath };
-  } catch (error) {
-    throw new Error(`Download failed: ${error instanceof Error ? error.message : String(error)}`);
-  }
-}
-
-// 示例用法
+// 示例：处理微博的复杂 URL
 (async () => {
-  const audioPath = 'https://example.com/audio.m4a'; // 替换为实际音频 URL
-  const coverPath = 'https://example.com/cover.jpg'; // 替换为实际封面 URL
-  const targetDirectory = './downloads'; // 替换为目标目录
+  const complexUrl = 'http://127.0.0.1:8080/api/download.mp4';
+  const targetDir = './downloads';
 
   try {
-    const { audioLocalPath, coverLocalPath } = await downloadAudioAndCover(
-      audioPath,
-      coverPath,
-      targetDirectory
+    // 方法1：自动从 URL 提取文件名（可能不准确）
+    const autoPath = await downloadFileFromUrl(complexUrl, targetDir);
+    console.log('Auto-detected path:', autoPath);
+
+    // 方法2：手动指定文件名（推荐）
+    const manualPath = await downloadFileFromUrl(
+      complexUrl,
+      targetDir,
+      'video_2186923718701724dfc535959ec07bdf.mp4' // 明确指定文件名
     );
-    console.error('Audio downloaded to:', audioLocalPath);
-    console.error('Cover downloaded to:', coverLocalPath);
+    console.log('Manual-specified path:', manualPath);
   } catch (error) {
     console.error('Error:', error instanceof Error ? error.message : String(error));
   }
