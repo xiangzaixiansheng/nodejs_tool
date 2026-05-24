@@ -1,5 +1,5 @@
 import { Context } from "koa";
-export default class AuthController {
+export declare class ApiController {
     private readonly service;
     constructor();
     testRedis(ctx: Context): Promise<{
@@ -25,4 +25,5 @@ export default class AuthController {
     }>;
     download(ctx: Context): Promise<void>;
 }
+export default ApiController;
 //# sourceMappingURL=api.d.ts.map

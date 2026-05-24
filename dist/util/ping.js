@@ -1,14 +1,17 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ping2 = exports.ping = void 0;
-const axios = require('axios');
-const { exec } = require('child_process');
+const axios_1 = __importDefault(require("axios"));
+const child_process_1 = require("child_process");
 const ping = async (proxyHost, proxyPort) => {
     try {
-        const response = await axios.get('https://www.baidu.com/', {
+        const response = await axios_1.default.get('https://www.baidu.com/', {
             proxy: {
                 host: proxyHost,
-                port: proxyPort,
+                port: parseInt(proxyPort, 10),
             },
             timeout: 5000,
         });
@@ -30,7 +33,7 @@ exports.ping = ping;
 const ping2 = async (proxyHost, proxyPort) => {
     const command = `curl --proxy http://${proxyHost}:${proxyPort} http://www.baidu.com`;
     return new Promise((resolve) => {
-        exec(command, (error, stdout, stderr) => {
+        (0, child_process_1.exec)(command, (error, stdout, stderr) => {
             if (error) {
                 console.error(`${proxyHost}:${proxyPort} 无法连接到代理服务器:`, error);
                 resolve(false);

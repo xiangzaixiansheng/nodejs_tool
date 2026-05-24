@@ -32,9 +32,12 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.profiler = void 0;
-const v8Profiler = require('v8-profiler-next');
+const v8_profiler_next_1 = __importDefault(require("v8-profiler-next"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const fsExtra = __importStar(require("fs-extra"));
@@ -42,12 +45,12 @@ class profiler {
     title = 'example';
     time = 30 * 1000;
     async start() {
-        v8Profiler.startProfiling(this.title, true);
+        v8_profiler_next_1.default.startProfiling(this.title, true);
         let _p = path.resolve(__dirname, "./cpu_profiler");
         let isExist = await this.checkFileExist(_p);
         !isExist && fsExtra.ensureDirSync(_p);
         setTimeout(() => {
-            const profile = v8Profiler.stopProfiling(this.title);
+            const profile = v8_profiler_next_1.default.stopProfiling(this.title);
             profile.export((_error, result) => {
                 fs.writeFileSync(`${_p}/${this.title}.cpuprofile`, result);
                 profile.delete();

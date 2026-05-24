@@ -8,7 +8,7 @@ import { testArraySchema } from "../../schemas";
 /**
  * API 测试 Controller 类
  */
-export default class AuthController {
+export class ApiController {
   private readonly service: ApiService;
 
   constructor() {
@@ -75,3 +75,5 @@ export default class AuthController {
     ctx.body = fs.createReadStream(filePath);
   }
 }
+
+export default ApiController;

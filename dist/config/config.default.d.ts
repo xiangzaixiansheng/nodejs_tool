@@ -1,4 +1,4 @@
-declare const _default: {
+export declare const config: {
     port: number;
     redis: {
         port: number;
@@ -22,5 +22,5 @@ declare const _default: {
         entities: string[];
     };
 };
-export default _default;
+export default config;
 //# sourceMappingURL=config.default.d.ts.map

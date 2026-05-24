@@ -1,12 +1,12 @@
-const axios = require('axios');
-const { exec } = require('child_process');
+import axios from 'axios';
+import { exec } from 'child_process';
 
 export const ping = async (proxyHost: string, proxyPort: string) => {
 	try {
 		const response = await axios.get('https://www.baidu.com/', {
 			proxy: {
 				host: proxyHost,
-				port: proxyPort,
+				port: parseInt(proxyPort, 10),
 			},
 			timeout: 5000, // 设置超时时间，单位毫秒
 		});

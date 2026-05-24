@@ -1,4 +1,1 @@
-declare global {
-    var JobTable: any;
-}
-export {};
+// 全局类型声明

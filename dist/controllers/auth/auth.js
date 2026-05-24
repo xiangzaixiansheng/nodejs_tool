@@ -9,6 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.AuthController = void 0;
 const httpMethod_1 = require("../../util/decorator/httpMethod");
 const jwt_1 = require("../../util/jwt");
 const requestRes_1 = require("../../util/requestRes");
@@ -52,7 +53,7 @@ class AuthController {
         }));
     }
 }
-exports.default = AuthController;
+exports.AuthController = AuthController;
 __decorate([
     (0, httpMethod_1.post)("/login"),
     __metadata("design:type", Function),
@@ -65,4 +66,5 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "getCurrentUser", null);
+exports.default = AuthController;
 //# sourceMappingURL=auth.js.map

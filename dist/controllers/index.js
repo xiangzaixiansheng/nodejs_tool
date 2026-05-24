@@ -9,6 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.IndexController = void 0;
 const httpMethod_1 = require("../util/decorator/httpMethod");
 class IndexController {
     async index(ctx) {
@@ -17,11 +18,12 @@ class IndexController {
         });
     }
 }
-exports.default = IndexController;
+exports.IndexController = IndexController;
 __decorate([
     (0, httpMethod_1.get)("/"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], IndexController.prototype, "index", null);
+exports.default = IndexController;
 //# sourceMappingURL=index.js.map

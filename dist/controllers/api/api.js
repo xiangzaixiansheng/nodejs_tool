@@ -12,12 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ApiController = void 0;
 const fs_1 = __importDefault(require("fs"));
 const ApiService_1 = require("../../service/ApiService");
 const requestRes_1 = require("../../util/requestRes");
 const httpMethod_1 = require("../../util/decorator/httpMethod");
 const schemas_1 = require("../../schemas");
-class AuthController {
+class ApiController {
     service;
     constructor() {
         this.service = new ApiService_1.ApiService();
@@ -51,41 +52,42 @@ class AuthController {
         ctx.body = fs_1.default.createReadStream(filePath);
     }
 }
-exports.default = AuthController;
+exports.ApiController = ApiController;
 __decorate([
     (0, httpMethod_1.get)("/testRedis"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "testRedis", null);
+], ApiController.prototype, "testRedis", null);
 __decorate([
     (0, httpMethod_1.get)("/testArray"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "testArray", null);
+], ApiController.prototype, "testArray", null);
 __decorate([
     (0, httpMethod_1.post)("/testRequestV1"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "testRequestV1", null);
+], ApiController.prototype, "testRequestV1", null);
 __decorate([
     (0, httpMethod_1.post)("/uploadFile"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "uploadFile", null);
+], ApiController.prototype, "uploadFile", null);
 __decorate([
     (0, httpMethod_1.post)("/uploadFile2"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "uploadFileByStream", null);
+], ApiController.prototype, "uploadFileByStream", null);
 __decorate([
     (0, httpMethod_1.get)('/download'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "download", null);
+], ApiController.prototype, "download", null);
+exports.default = ApiController;
 //# sourceMappingURL=api.js.map

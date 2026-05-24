@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = {
+exports.config = void 0;
+exports.config = {
     redis: {
         port: 6379,
         host: "127.0.0.1",
@@ -13,7 +14,7 @@ exports.default = {
     mysql: {
         type: "mysql",
         host: "localhost",
-        port: "3306",
+        port: 3306,
         username: "root",
         password: "xiangzai",
         database: "sqlstudy",
@@ -23,4 +24,5 @@ exports.default = {
         entities: process.env.NODE_ENV === "dev" ? ["src/entities/*"] : ["dist/entities/*"],
     }
 };
+exports.default = exports.config;
 //# sourceMappingURL=config.dev.js.map

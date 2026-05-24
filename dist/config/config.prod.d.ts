@@ -1,3 +1,3 @@
-declare const _default: {};
-export default _default;
+export declare const config: {};
+export default config;
 //# sourceMappingURL=config.prod.d.ts.map

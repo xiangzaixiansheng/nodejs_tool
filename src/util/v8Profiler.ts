@@ -1,8 +1,7 @@
-const v8Profiler = require('v8-profiler-next');
+import v8Profiler from 'v8-profiler-next';
 import * as fs from 'fs';
 import * as path from "path";
 import * as fsExtra from "fs-extra";
-//const fs = require('fs');
 /***
  * @description 分析Profiler
  * 

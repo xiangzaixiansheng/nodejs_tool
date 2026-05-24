@@ -1,2 +1,3 @@
-export default {
-};
+export const config = {};
+
+export default config;

@@ -1,11 +1,10 @@
 import { Context } from "koa";
 import { get } from "../util/decorator/httpMethod";
 
-
-export default class IndexController {
+export class IndexController {
   /**
-   * @param ctx 
-   * @returns 
+   * @param ctx
+   * @returns
    */
   @get("/")
   public async index(ctx: Context) {
@@ -13,5 +12,6 @@ export default class IndexController {
       title: "nodeWeb 首页"
     });
   }
-
 }
+
+export default IndexController;

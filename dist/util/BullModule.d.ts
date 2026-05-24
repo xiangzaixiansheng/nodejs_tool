@@ -15,6 +15,6 @@ export declare class BullModule {
     saveActive(userId: string): Promise<void>;
     close(): Promise<void>;
 }
-declare const _default: BullModule;
-export default _default;
+export declare const bullModule: BullModule;
+export default bullModule;
 //# sourceMappingURL=BullModule.d.ts.map

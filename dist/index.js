@@ -53,15 +53,15 @@ const logger_1 = require("./util/logger");
 const logger_2 = require("./util/logger");
 const fileTool_1 = require("./util/fileTool");
 const limiterReq_1 = require("./util/limiterReq");
-const config_1 = __importDefault(require("./config"));
-const BullModule_1 = __importDefault(require("./util/BullModule"));
+const config_1 = require("./config");
+const BullModule_1 = require("./util/BullModule");
 const errorHandler_1 = require("./middleware/errorHandler");
 const requestId_1 = require("./middleware/requestId");
 const healthCheck_1 = require("./middleware/healthCheck");
 const ratelimit = require("koa-ratelimit");
 const serve = require("koa-static");
 const views = require("koa-views");
-const config = (0, config_1.default)();
+const config = (0, config_1.getConfigSync)();
 const uploadDir = __dirname + "/uploads";
 fs.ensureDirSync(uploadDir);
 class App {
@@ -96,7 +96,7 @@ class App {
         this.router.get('/health/ready', healthCheck_1.readyCheck);
         await (0, glues_1.default)();
         this.app.use(ratelimit((0, limiterReq_1.getLimiterConfig)((ctx) => ctx.ip, redis_1.redis)));
-        (0, routes_1.addRouter)(this.router);
+        await (0, routes_1.addRouter)(this.router);
         this.app.use(this.router.routes()).use(this.router.allowedMethods());
         this.app.use(async (ctx) => {
             ctx.status = 404;
@@ -128,7 +128,7 @@ class App {
                     logger_2.logger.info('Database connection closed');
                     await redis_1.redis.quit();
                     logger_2.logger.info('Redis connection closed');
-                    await BullModule_1.default.close();
+                    await BullModule_1.bullModule.close();
                     logger_2.logger.info('BullMQ closed');
                     logger_2.logger.info('Graceful shutdown completed');
                     process.exit(0);

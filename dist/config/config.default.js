@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.config = void 0;
 function getEnvVar(key, defaultValue) {
     const value = process.env[key];
     if (!value && !defaultValue) {
@@ -14,7 +15,7 @@ function getEnvNumber(key, defaultValue) {
     const num = parseInt(value, 10);
     return isNaN(num) ? defaultValue : num;
 }
-exports.default = {
+exports.config = {
     port: getEnvNumber('PORT', 3000),
     redis: {
         port: getEnvNumber('REDIS_PORT', 6379),
@@ -38,4 +39,5 @@ exports.default = {
         entities: process.env.NODE_ENV === "dev" ? ["src/entities/*"] : ["dist/entities/*"],
     }
 };
+exports.default = exports.config;
 //# sourceMappingURL=config.default.js.map

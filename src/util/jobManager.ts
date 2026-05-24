@@ -1,68 +1,52 @@
+import { CronJob } from 'cron';
 
-/***
- * @description 动态在内存中添加定时任务
- */
-
-const CronJob = require('cron').CronJob;
+interface Job {
+    id: string | number;
+    crontab: string;
+    cronJob: CronJob;
+    status: boolean;
+    name: string;
+}
 
 interface HashTableEntry {
-    [key: string]: any;
+    [key: string]: Job;
 }
 
 class HashTable {
     private size = 0;
     private entry: HashTableEntry = {};
 
-    public add(key: string, value: any) {
-        if (!this.containsKey(key)) {
+    add(key: string | number, value: Job) {
+        const keyStr = String(key);
+        if (!this.containsKey(keyStr)) {
             this.size++;
         }
-        this.entry[key] = value;
+        this.entry[keyStr] = value;
     }
-    public getValue(key: string) {
-        return this.containsKey(key) ? this.entry[key] : null;
+
+    getValue(key: string | number): Job | null {
+        return this.entry[String(key)] ?? null;
     }
-    public remove(key: string) {
-        if (this.containsKey(key) && (delete this.entry[key])) {
+
+    remove(key: string | number) {
+        const keyStr = String(key);
+        if (this.containsKey(keyStr)) {
+            delete this.entry[keyStr];
             this.size--;
         }
     }
-    public containsKey(key: string): boolean {
-        return (key in this.entry);
+
+    containsKey(key: string): boolean {
+        return key in this.entry;
     }
 
-    public containsValue(value: string): boolean {
-        for (let prop in this.entry) {
-            if (this.entry[prop] == value) {
-                return true;
-            }
-        }
-        return false;
-    }
-    public getValues(): any[] {
-        let values: any[] = [];
-        for (let prop in this.entry) {
-            values.push(this.entry[prop]);
-        }
-        return values;
-    }
-    public getKeys(): string[] {
-        let keys: string[] = [];
-        for (let prop in this.entry) {
-            keys.push(prop);
-        }
-        return keys;
-    }
-    public getSize(): number {
+    getSize(): number {
         return this.size;
-    }
-    public clear() {
-        this.size = 0;
-        this.entry = {};
     }
 }
 
-global.JobTable = new HashTable();
+// 使用单例模式替代 global
+const jobTable = new HashTable();
 
 //程序启动时执行
 export async function InitJob() {
@@ -86,7 +70,7 @@ export async function InitJob() {
                         status,
                         name
                     };
-                    global.JobTable.add(id, job);
+                    jobTable.add(id, job);
                     StartJob(id);
                 }
             } catch (e) {
@@ -98,7 +82,7 @@ export async function InitJob() {
 
 export function StartJob(id: any) {
     try {
-        const job = global.JobTable.getValue(id);
+        const job = jobTable.getValue(id);
         if (job != null) {
             if (!job.status) {
                 return '任务已停止';
@@ -120,7 +104,7 @@ export function StartJob(id: any) {
 export function CreateJob(param: any) {
     try {
         let { id, crontab, status, name } = param;
-        if (global.JobTable.containsKey(param.id)) {
+        if (jobTable.containsKey(param.id)) {
             return '任务id重复';
         }
         let cronJob = new CronJob(crontab, async () => {
@@ -135,7 +119,7 @@ export function CreateJob(param: any) {
             cronJob: cronJob,
             name
         };
-        global.JobTable.add(id, job);
+        jobTable.add(id, job);
         StartJob(id);
         return 'success';
     } catch (e) {
@@ -148,14 +132,14 @@ export function CreateJob(param: any) {
 
 export function DeleteJob(id: number): string {
     try {
-        let job = global.JobTable.getValue(id);
+        let job = jobTable.getValue(id);
         if (job != null) {
             let cronJob = job.cronJob;
             if (cronJob != null) {
                 cronJob.stop();
             }
         }
-        global.JobTable.remove(id);
+        jobTable.remove(id);
         console.info(`[jobManager]已经删除任务 id:${id}`);
         return 'success';
     } catch (e) {
@@ -166,11 +150,11 @@ export function DeleteJob(id: number): string {
 
 
 export function getJob(id: number) {
-    return global.JobTable.getValue(id);
+    return jobTable.getValue(id);
 }
 
 export function getJobCount() {
-    return global.JobTable.getSize();
+    return jobTable.getSize();
 }
 
 

@@ -1,13 +1,10 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BullModule = void 0;
+exports.bullModule = exports.BullModule = void 0;
 const bullmq_1 = require("bullmq");
-const config_1 = __importDefault(require("../config"));
-const redisConfig = (0, config_1.default)().redis;
-const { queue1, queue2 } = (0, config_1.default)().bullconfig;
+const config_1 = require("../config");
+const redisConfig = (0, config_1.getConfigSync)().redis;
+const { queue1, queue2 } = (0, config_1.getConfigSync)().bullconfig;
 class BullModule {
     queue1Instance;
     queue2Instance;
@@ -90,5 +87,6 @@ class BullModule {
     }
 }
 exports.BullModule = BullModule;
-exports.default = new BullModule();
+exports.bullModule = new BullModule();
+exports.default = exports.bullModule;
 //# sourceMappingURL=BullModule.js.map

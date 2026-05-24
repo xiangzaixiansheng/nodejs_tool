@@ -4,7 +4,7 @@ import { wrap } from '../../util/requestRes';
 import { post, get } from "../../util/decorator/httpMethod";
 import { createUserSchema, paginationSchema } from "../../schemas";
 
-export default class UserController {
+export class UserController {
   private readonly service: UserService;
 
   constructor() {
@@ -31,3 +31,5 @@ export default class UserController {
     return ctx.body = await wrap(this.service.create(validated));
   }
 }
+
+export default UserController;

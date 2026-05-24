@@ -17,8 +17,8 @@ import { loggerMiddleware } from './util/logger';
 import { logger } from './util/logger';
 import { getIp } from "./util/fileTool";
 import { getLimiterConfig } from "./util/limiterReq";
-import getConfig from "./config";
-import BullModule from "./util/BullModule";
+import { getConfigSync } from "./config";
+import { bullModule as BullModule } from "./util/BullModule";
 
 // 中间件
 import { errorHandler } from "./middleware/errorHandler";
@@ -29,7 +29,7 @@ const ratelimit = require("koa-ratelimit");
 const serve = require("koa-static");
 const views = require("koa-views");
 
-const config = getConfig();
+const config = getConfigSync();
 const uploadDir = __dirname + "/uploads";
 fs.ensureDirSync(uploadDir);
 
@@ -100,7 +100,7 @@ class App {
         this.app.use(ratelimit(getLimiterConfig((ctx: Context) => ctx.ip, redis)));
 
         // 路由
-        addRouter(this.router);
+        await addRouter(this.router);
         this.app.use(this.router.routes()).use(this.router.allowedMethods());
 
         // 404 处理

@@ -17,7 +17,7 @@ function getEnvNumber(key: string, defaultValue: number): number {
   return isNaN(num) ? defaultValue : num;
 }
 
-export default {
+export const config = {
   port: getEnvNumber('PORT', 3000),
   redis: {
     port: getEnvNumber('REDIS_PORT', 6379),
@@ -42,3 +42,5 @@ export default {
       process.env.NODE_ENV === "dev" ? ["src/entities/*"] : ["dist/entities/*"],
   }
 };
+
+export default config;

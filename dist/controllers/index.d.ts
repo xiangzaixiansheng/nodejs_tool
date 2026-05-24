@@ -1,5 +1,6 @@
 import { Context } from "koa";
-export default class IndexController {
+export declare class IndexController {
     index(ctx: Context): Promise<void>;
 }
+export default IndexController;
 //# sourceMappingURL=index.d.ts.map

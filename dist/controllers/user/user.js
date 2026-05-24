@@ -9,6 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.UserController = void 0;
 const UserService_1 = require("../../service/UserService");
 const requestRes_1 = require("../../util/requestRes");
 const httpMethod_1 = require("../../util/decorator/httpMethod");
@@ -27,7 +28,7 @@ class UserController {
         return ctx.body = await (0, requestRes_1.wrap)(this.service.create(validated));
     }
 }
-exports.default = UserController;
+exports.UserController = UserController;
 __decorate([
     (0, httpMethod_1.get)("/getAll"),
     __metadata("design:type", Function),
@@ -40,4 +41,5 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "create", null);
+exports.default = UserController;
 //# sourceMappingURL=user.js.map

@@ -1,5 +1,5 @@
 import { Context } from "koa";
-export default class AuthController {
+export declare class AuthController {
     login(ctx: Context): Promise<{
         statusCode: number;
         data?: any;
@@ -19,4 +19,5 @@ export default class AuthController {
         requestId: any;
     }>;
 }
+export default AuthController;
 //# sourceMappingURL=auth.d.ts.map

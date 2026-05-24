@@ -1,5 +1,5 @@
 import { Context } from "koa";
-export default class UserController {
+export declare class UserController {
     private readonly service;
     constructor();
     getAll(ctx: Context): Promise<{
@@ -13,4 +13,5 @@ export default class UserController {
         msg?: string;
     }>;
 }
+export default UserController;
 //# sourceMappingURL=user.d.ts.map

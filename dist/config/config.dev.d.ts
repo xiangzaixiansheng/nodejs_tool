@@ -1,4 +1,4 @@
-declare const _default: {
+export declare const config: {
     redis: {
         port: number;
         host: string;
@@ -9,9 +9,9 @@ declare const _default: {
         queue2: string;
     };
     mysql: {
-        type: string;
+        type: "mysql";
         host: string;
-        port: string;
+        port: number;
         username: string;
         password: string;
         database: string;
@@ -21,5 +21,5 @@ declare const _default: {
         entities: string[];
     };
 };
-export default _default;
+export default config;
 //# sourceMappingURL=config.dev.d.ts.map

@@ -1,8 +1,8 @@
 import { Queue, Worker, Job } from 'bullmq';
-import getConfig from "../config";
+import { getConfigSync } from "../config";
 
-const redisConfig = getConfig().redis;
-const { queue1, queue2 } = getConfig().bullconfig;
+const redisConfig = getConfigSync().redis;
+const { queue1, queue2 } = getConfigSync().bullconfig;
 
 /**
  * BullMQ 队列管理模块
@@ -117,4 +117,6 @@ export class BullModule {
     }
 }
 
-export default new BullModule();
+export const bullModule = new BullModule();
+
+export default bullModule;

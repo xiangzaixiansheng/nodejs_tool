@@ -8,7 +8,7 @@ import { loginSchema } from "../../schemas";
  * 认证 Controller
  * 处理登录、注册等认证相关接口
  */
-export default class AuthController {
+export class AuthController {
   /**
    * 用户登录
    * 实际项目中应该查询数据库验证密码
@@ -64,3 +64,5 @@ export default class AuthController {
     }));
   }
 }
+
+export default AuthController;
