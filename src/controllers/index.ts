@@ -1,5 +1,5 @@
 import { Context } from "koa";
-import { post, get, put, del } from "../util/decorator/httpMethod";
+import { get } from "../util/decorator/httpMethod";
 
 
 export default class IndexController {

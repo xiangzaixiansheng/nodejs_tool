@@ -1,99 +1,99 @@
 import { redis_tool } from '../util/redisTool';
 import { sortBy, arrayChunk } from '../util/arrayTool';
-import { reqGetPromise } from '../util/reqPromiseTool';
-import { get } from '../util/requestTool';
+import { httpGet } from '../util/httpClient';
 import { logger } from '../util/logger';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as fse from 'fs-extra';
 import { Context } from "koa";
-const fse = require("fs-extra");
+import { PaginationInput } from '../schemas';
 
 export class ApiService {
-
   /**
-   * @description redis_tool 测试读写redis
-   * @returns 
+   * 测试 Redis 读写
    */
   public async testRedis() {
-    //测试set
+    // 测试 set
     await redis_tool.setString("test", { hello: "hello" });
-    //测试hset和加锁
+    // 测试 hset 和加锁
     await redis_tool.hset("testJson", "userName", "haha");
-    //测试scan方法
-    let res3 = await redis_tool.scan("*", 100);
-    return res3;
+    // 测试 scan 方法
+    const res = await redis_tool.scan("*", 100);
+    return res;
   }
 
   /**
-   * @description arrayTool 测试数组相关的
-   * @param query 
-   * @returns 
+   * 测试数组工具
    */
-  public async testArray(query?: any) {
-    if (query && query.array) {
-      return sortBy(query.array.split(","));
+  public async testArray(query?: PaginationInput) {
+    if (query?.array) {
+      return sortBy(String(query.array).split(","));
     }
 
-    let testArray = [8, 9, 2, 1, 0, 6];
-    let result1 = sortBy(testArray);
-    let result2 = sortBy(testArray, (item) => -item); //倒序
-    let chunk = arrayChunk(testArray, 3); //[ [ 8, 9, 2 ], [ 1, 0, 6 ] ]
+    const testArray = [8, 9, 2, 1, 0, 6];
+    const result1 = sortBy(testArray);
+    const result2 = sortBy(testArray, (item) => -item); // 倒序
+    const chunk = arrayChunk(testArray, 3);
 
-    logger.error(result1);
-    logger.error(result2);
-    logger.error(chunk);
+    logger.info({ result1, result2, chunk }, 'Array test results');
 
-    class Student {
-      public name: any
-      public age: any
-
-      constructor(name: string, age: number) {
-        this.name = name
-        this.age = age
-      }
-    }
-
-    let arr = [
-      new Student('xiangzai', 22),
-      new Student('liming', 19),
-      new Student('hantian', 33),
-    ]
-    const sFn = (student: Student) => student.age
-    console.error(sortBy(arr, sFn)) //age从小到大
-    console.error(sortBy(arr, (i) => -sFn(i))) //age从大到小
-
-    return "success"
+    return {
+      sorted: result1,
+      sortedDesc: result2,
+      chunked: chunk,
+    };
   }
 
-  //测试请求request-promise接口
+  /**
+   * 测试 HTTP 请求
+   */
   public async testRequestV1() {
-    let res = await reqGetPromise("http://localhost:8080/api/testArray", { array: "8,9,2,1,3,4", data: "123" });
-    let res2 = await get("http://localhost:8080/api/testArray", { params: { array: "8,9,2,1,3,4", data: "123" } });
-    return res2;
+    const res = await httpGet(
+      "http://localhost:8080/api/testArray",
+      { params: { array: "8,9,2,1,3,4", data: "123" } }
+    );
+    return res;
   }
 
-  //基于文件流上传文件
+  /**
+   * 基于文件流上传文件
+   */
   public async uploadFileByStream(ctx: Context) {
-    //@ts-ignore
-    const file = ctx.request.files.file;
-    //@ts-ignore
-    console.info(JSON.stringify(ctx.request.body))
-    // 读取文件流
-    const fileReader = fs.createReadStream(file.path);
-    const filePath = path.join(__dirname, '../uploads/stream');
-    // 组装成绝对路径
-    const fileResource = filePath + `/${file.name}`;
+    // 使用 multer 后的文件格式
+    const file = (ctx.request as any).file;
+    const files = (ctx.request as any).files;
 
-    const writeStream = fs.createWriteStream(fileResource);
-    if (!fs.existsSync(filePath)) {
-      await fs.promises.mkdir(filePath, { recursive: true })
+    if (!file && !files) {
+      throw new Error('未找到上传的文件');
     }
-    await fileReader.pipe(writeStream);
-    fileReader.on("end", () => {
-      fse.unlinkSync(file.path);
-    });
 
-    return "success"
+    const uploadedFile = file || files?.file;
+    if (!uploadedFile) {
+      throw new Error('文件上传失败');
+    }
+
+    logger.info({
+      filename: uploadedFile.originalname,
+      size: uploadedFile.size,
+    }, 'File uploaded');
+
+    // 移动到目标目录
+    const filePath = path.join(__dirname, '../uploads/stream');
+    const targetPath = path.join(filePath, uploadedFile.originalname || 'unnamed');
+
+    if (!fs.existsSync(filePath)) {
+      await fs.promises.mkdir(filePath, { recursive: true });
+    }
+
+    // 复制文件
+    await fse.copy(uploadedFile.path, targetPath);
+    // 删除临时文件
+    await fse.remove(uploadedFile.path);
+
+    return {
+      filename: uploadedFile.originalname,
+      size: uploadedFile.size,
+      path: targetPath,
+    };
   }
-
 }

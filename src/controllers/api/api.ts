@@ -2,17 +2,13 @@ import { Context } from "koa";
 import fs from 'fs';
 import { ApiService } from "../../service/ApiService";
 import { wrap } from '../../util/requestRes';
-import { post, get, put, del } from "../../util/decorator/httpMethod";
+import { post, get } from "../../util/decorator/httpMethod";
+import { testArraySchema } from "../../schemas";
 
 /**
- * 
- * api 测试controller类
- * 
+ * API 测试 Controller 类
  */
 export default class AuthController {
-  /**
-   * 逻辑处理service类
-   */
   private readonly service: ApiService;
 
   constructor() {
@@ -20,50 +16,62 @@ export default class AuthController {
   }
 
   /**
-   * test 接口
-   * @param ctx 
-   * @returns 
+   * 测试 Redis
    */
   @get("/testRedis")
-  public async login(ctx: Context) {
+  public async testRedis(ctx: Context) {
     return ctx.body = await wrap(this.service.testRedis());
   }
 
+  /**
+   * 测试数组工具
+   */
   @get("/testArray")
   public async testArray(ctx: Context) {
-    let query = ctx.query;
-    return ctx.body = await wrap(this.service.testArray(query));
+    const validated = testArraySchema.parse(ctx.query);
+    return ctx.body = await wrap(this.service.testArray(validated));
   }
 
   /**
-   * 测试 request-Promise
-   * @param ctx 
-   * @returns 
+   * 测试 HTTP 请求
    */
   @post("/testRequestV1")
   public async testRequestV1(ctx: Context) {
     return ctx.body = await wrap(this.service.testRequestV1());
   }
 
-  //上传文件
-  //curl -F "file=@文件名" -X POST "http://localhost:8080/api/uploadFile"
+  /**
+   * 文件上传 - 简单版
+   */
   @post("/uploadFile")
   public async uploadFile(ctx: Context) {
     ctx.body = await wrap(Promise.resolve("success"));
   }
-  //curl -F "file=@文件名" -X POST "http://localhost:3000/api/uploadFile2"
+
+  /**
+   * 文件上传 - 流式处理
+   */
   @post("/uploadFile2")
   public async uploadFileByStream(ctx: Context) {
-    ctx.body = await wrap(this.service.uploadFileByStream(ctx));
+    return ctx.body = await wrap(this.service.uploadFileByStream(ctx));
   }
 
+  /**
+   * 文件下载
+   */
   @get('/download')
   public async download(ctx: Context) {
-    const filename = "readMe.txt"
+    const filename = "readMe.txt";
     ctx.set('Content-Type', 'application/vnd.openxmlformats');
     ctx.set('Content-Disposition', 'attachment; filename=' + filename);
-    //ctx.body = fs.readFileSync(__dirname + `/../../download/${filename}`)
-    //基于文件流
-    ctx.body = fs.createReadStream(__dirname + `/../../download/${filename}`)
+    const filePath = __dirname + `/../../download/${filename}`;
+
+    if (!fs.existsSync(filePath)) {
+      ctx.status = 404;
+      ctx.body = { success: false, error: '文件不存在' };
+      return;
+    }
+
+    ctx.body = fs.createReadStream(filePath);
   }
 }

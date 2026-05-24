@@ -1,9 +1,9 @@
-import { Like, DeepPartial } from "typeorm";
 import { UsersEntity } from "../entities";
-
+import { getDataSource } from "../glues/mysql";
 
 export const getAllUserInfo = async (page: number, size: number) => {
-  const list = await UsersEntity.getRepository()
+  const repository = getDataSource().getRepository(UsersEntity);
+  const list = await repository
     .createQueryBuilder('ui')
     .select([
       "ui.id",
@@ -14,10 +14,11 @@ export const getAllUserInfo = async (page: number, size: number) => {
     .take(size)
     .orderBy('ui.id', 'DESC')
     .getMany();
-  const count = await UsersEntity.getRepository().count();
+  const count = await repository.count();
   return [list, count];
-}
+};
 
 export const createUser = async (data: Partial<UsersEntity>) => {
-  return await UsersEntity.getRepository().save(data);
-}
+  const repository = getDataSource().getRepository(UsersEntity);
+  return await repository.save(data);
+};

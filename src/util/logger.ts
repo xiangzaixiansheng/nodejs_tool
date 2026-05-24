@@ -1,72 +1,91 @@
-import { Context, Next } from 'koa'
-import { LogPath } from '../constant/constants'
+import { Context, Next } from 'koa';
+import { LogPath } from '../constant/constants';
+import * as fs from 'fs';
+import * as path from 'path';
+import log4js from 'log4js';
 
-const fs = require('fs');
-const path = require('path');
-const log4js = require('log4js');
-
-// 这个是判断是否有logs目录，没有就新建，用来存放日志
-const logsDir = path.parse(LogPath).dir
+// 确保日志目录存在
+const logsDir = path.parse(LogPath).dir;
 if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir)
+  fs.mkdirSync(logsDir, { recursive: true });
 }
-// 配置log4.js
+
+// 配置 log4js
 log4js.configure({
   appenders: {
-    console: { type: 'console' },
+    console: {
+      type: 'console',
+      layout: {
+        type: 'pattern',
+        pattern: '%[%d{yyyy-MM-dd hh:mm:ss}] [%p] %c - %m%n',
+      },
+    },
     dateFile: {
       type: 'dateFile',
       filename: LogPath,
-      daysToKeep: 3,
+      numBackups: 7,
       pattern: '-yyyy-MM-dd',
+      layout: {
+        type: 'pattern',
+        pattern: '%d{yyyy-MM-dd hh:mm:ss} [%p] %c - %m%n',
+      },
     },
   },
   categories: {
     default: {
       appenders: ['console', 'dateFile'],
-      level: 'debug',//error
+      level: process.env.LOG_LEVEL || 'debug',
     },
   },
-})
+});
 
-/**
- * @param {*} req ctx.req
- * @method 获取客户端ip地址
- */
-function getClientIp(req: any) {
-  return req.headers['x-forwarded-for'] ||
-    req.connection.remoteAddress ||
-    req.socket.remoteAddress ||
-    req.connection.socket.remoteAddress;
+function getClientIp(req: any): string {
+  return (
+    req.headers['x-forwarded-for'] ||
+    req.connection?.remoteAddress ||
+    req.socket?.remoteAddress ||
+    req.connection?.socket?.remoteAddress ||
+    'unknown'
+  );
 }
 
-function isMobile(userAgent: any) {
-  // 判断是移动端还是pc端
+function isMobile(userAgent: string): string {
   return /Mobile/.test(userAgent) ? 'Mobile' : 'PC';
 }
 
-const format_log = (ctx: any, responseTime: number) => {
-  let client = {
+interface LogEntry {
+  timestamp: string;
+  requestId: string;
+  ip: string;
+  method: string;
+  path: string;
+  referer?: string;
+  userAgent: string;
+  responseTime: number;
+  statusCode?: number;
+}
+
+function formatLog(ctx: Context, responseTime: number): string {
+  const entry: LogEntry = {
+    timestamp: new Date().toISOString(),
+    requestId: ctx.state.requestId || 'unknown',
     ip: getClientIp(ctx.req),
     method: ctx.request.method,
     path: ctx.request.path,
-    referer: ctx.request.headers['referer'],
-    userAgent: isMobile(ctx.request.headers['user-agent']),
-    responseTime
-  }
-  // 返回客户端信息交给logger打印
-  return JSON.stringify(client);
+    referer: ctx.request.headers['referer'] as string,
+    userAgent: isMobile(ctx.request.headers['user-agent'] || ''),
+    responseTime,
+    statusCode: ctx.status,
+  };
+  return JSON.stringify(entry);
 }
 
-export const logger = log4js.getLogger('[Default]')
+export const logger = log4js.getLogger('[App]');
 
-// logger中间件
+// Logger 中间件
 export const loggerMiddleware = async (ctx: Context, next: Next) => {
-  // 请求开始时间
-  const start = +new Date();
-  await next()
-  // 结束时间
-  const ms = +new Date() - start;
-  logger.info(format_log(ctx, ms));
-}
-
+  const start = Date.now();
+  await next();
+  const ms = Date.now() - start;
+  logger.info(formatLog(ctx, ms));
+};

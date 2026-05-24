@@ -2,28 +2,18 @@ import fs = require("fs");
 import path = require("path");
 import { resolve } from "path";
 import "reflect-metadata";
-// 路由配置 注意这里的路由注册要和/src/util/decorator/httpMethod.ts方法注册是一个。
 import { ROUTER_MAP } from '../constant/constants';
 
 /**
  * 路由类型
  */
 type RouteMeta = {
-    /**
-     * 路由名称
-     */
     name: string;
-    /**
-     * 方法名称
-     */
     method: string;
-    /**
-     * 路径
-     */
     path: string;
 };
 
-//controllers下的路径
+// controllers下的路径
 const ctrPath = resolve(__dirname, "../controllers");
 
 /**
@@ -31,61 +21,46 @@ const ctrPath = resolve(__dirname, "../controllers");
  */
 const addRouter = (router: any) => {
     // 递归扫描controller文件夹，收集所有controller
-    // 文件夹名称单独定义不能放在递归方法
-    let derName = "";
-    recursion(ctrPath);
+    recursion(ctrPath, "");
 
     /**
      * 递归获取所有ts文件添加到路由
-     * @param m 方法
-     * @param derName 文件名
+     * @param folderName 文件夹路径
+     * @param prefix 路由前缀
      */
-    // tslint:disable-next-line:completed-docs
-    function recursion(folderName: string) {
-        // 递归扫描所有文件夹内的文件添加到路由
-        // 拿到具体文件
+    function recursion(folderName: string, prefix: string) {
         fs.readdirSync(folderName).forEach((name) => {
+            const filePath = path.join(folderName, name);
+            const file = fs.lstatSync(filePath);
 
-            //fix:修复build后的产物也可以加在router
-            if (/^[^.]+\.ts$/.test(name) || /^[^.]+\.js$/.test(name)) {
-                binding(require(path.join(folderName, name)).default, derName);
-                return true;
-            }
-
-            // 拿到子文件路径
-            const fileN = path.join(folderName, name);
-            // 转换文件对象
-            const file = fs.lstatSync(fileN);
             // 是文件夹递归调用
             if (file.isDirectory()) {
-                // 叠加文件夹名称递归调用
-                derName = (derName + "/" + name);
-                recursion(fileN);
-                // 第一次循环结束初始化文件夹名称
-                derName = "";
+                const newPrefix = prefix ? `${prefix}/${name}` : `/${name}`;
+                recursion(filePath, newPrefix);
+                return;
+            }
+
+            // fix: 修复build后的产物也可以加载router
+            if (/^[^.]+\.(ts|js)$/.test(name)) {
+                binding(require(filePath).default, prefix);
             }
         });
     }
 
     /**
      * 结合meta数据添加路由
-     * @param m 方法
-     * @param derName 文件名
+     * @param m 控制器类
+     * @param prefix 路由前缀
      */
-    // tslint:disable-next-line:completed-docs
-    function binding(m: ObjectConstructor, derName: string) {
+    function binding(m: ObjectConstructor, prefix: string) {
         const routerMap: RouteMeta[] = Reflect.getMetadata(ROUTER_MAP, m, "method") || [];
         if (routerMap.length) {
             const ctr: any = new m();
             routerMap.forEach((route) => {
-                // const { name, method, path } = route;
-                const path: string = derName + route.path;
-                const name: string = route.name;
-                const method: string = route.method;
-                const obj: string = ctr[name].bind(ctr);
-                // router[method](path, ctr[name].bind(ctr));
-                router[method](path, obj);
-                console.log("添加路由成功:" + path);
+                const routePath: string = prefix + route.path;
+                const obj = ctr[route.name].bind(ctr);
+                router[route.method](routePath, obj);
+                console.log("添加路由成功:" + routePath);
             });
         }
     }

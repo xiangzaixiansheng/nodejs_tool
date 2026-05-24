@@ -1,56 +1,66 @@
-import cors = require("@koa/cors");
-import { getLimiterConfig } from "./util/limiterReq";
-import { addRouter } from "./routes/routes";
-import { redis } from "./glues/redis";
+import dotenv from 'dotenv';
+dotenv.config({ path: process.env.NODE_ENV === 'production' ? '.env' : '.env.local' });
+
+import cors from "@koa/cors";
+import { bodyParser } from "@koa/bodyparser";
+import Koa, { Context } from 'koa';
+import Router from "@koa/router";
 import * as path from "path";
 import * as fs from "fs-extra";
 
-const ratelimit = require("koa-ratelimit");
-const koaBody = require("koa-body");
+import { addRouter } from "./routes/routes";
+import swaggerRouter, { swaggerUi } from "./routes/swagger";
+import { redis } from "./glues/redis";
+import createConnection from "./glues";
+import { getDataSource } from "./glues/mysql";
+import { loggerMiddleware } from './util/logger';
+import { logger } from './util/logger';
+import { getIp } from "./util/fileTool";
+import { getLimiterConfig } from "./util/limiterReq";
+import getConfig from "./config";
+import BullModule from "./util/BullModule";
 
+// 中间件
+import { errorHandler } from "./middleware/errorHandler";
+import { requestIdMiddleware } from "./middleware/requestId";
+import { healthCheck, readyCheck } from "./middleware/healthCheck";
+
+const ratelimit = require("koa-ratelimit");
 const serve = require("koa-static");
 const views = require("koa-views");
 
-
+const config = getConfig();
 const uploadDir = __dirname + "/uploads";
-fs.ensureDir(uploadDir);
-
-
-import Koa, { Context } from 'koa';              // 导入koa
-import Router from "koa-router";    // 导入koa-router
-import createConnection from "./glues";
-import { loggerMiddleware } from './util/logger'
-import { profiler } from "./util/v8Profiler";
-import { getIp } from "./util/fileTool";
+fs.ensureDirSync(uploadDir);
 
 class App {
-    /**
-    * Koa对象
-    */
     private readonly app: Koa;
-    /**
-     * Router对象
-     */
     private readonly router: Router;
+    private server: any;
+
     constructor() {
         this.app = new Koa();
         this.router = new Router();
         this.init().catch((error) => {
-            // tslint:disable-next-line:no-console
-            console.log(error);
+            logger.error('App initialization failed:', error);
+            process.exit(1);
         });
     }
 
     private async init() {
-        // koa(这个放第一个,要不然跨域会无效)
+        // 错误处理（放在最前面）
+        this.app.use(errorHandler);
+
+        // 请求 ID
+        this.app.use(requestIdMiddleware);
+
+        // CORS
         this.app.use(cors());
 
         // Logger
         this.app.use(loggerMiddleware);
 
-        //链接数据库
-        await createConnection();
-        //把配置模板引擎的代码移动到所有与路由相关的代码之前, TypeError: ctx.render is not a function
+        // 静态文件服务
         this.app.use(
             serve(
                 path.join(
@@ -60,62 +70,104 @@ class App {
                 {
                     index: false,
                     hidden: false,
-                    defter: true,
+                    defer: true,
                 }
             )
         );
 
+        // 模板引擎
         this.app.use(
             views("public", {
-                map: {
-                    html: "ejs"
-                }
+                map: { html: "ejs" }
             })
-        )
+        );
 
-        // 接收文件上传
-        this.app.use(koaBody({
-            "multipart": true,
-            "formidable": {
-                //"maxFileSize": 20 * 1024 * 1024,	// 设置上传文件大小最大限制，默认2M
-                // 上传目录
-                uploadDir,
-                // 保留文件扩展名
-                keepExtensions: true,
-            }
-        }));
+        // Body parser
+        this.app.use(bodyParser());
 
+        // Swagger 文档（在限流之前）
+        this.app.use(swaggerUi);
+        this.app.use(swaggerRouter.routes()).use(swaggerRouter.allowedMethods());
 
-        // http请求次数限制(目前使用用户的ip来限制的)
-        this.app.use(ratelimit((getLimiterConfig((ctx: Context) => ctx.ip, redis))));
+        // 健康检查（在限流之前）
+        this.router.get('/health', healthCheck);
+        this.router.get('/health/ready', readyCheck);
 
-        // add route
+        // 连接数据库
+        await createConnection();
+
+        // 限流
+        this.app.use(ratelimit(getLimiterConfig((ctx: Context) => ctx.ip, redis)));
+
+        // 路由
         addRouter(this.router);
         this.app.use(this.router.routes()).use(this.router.allowedMethods());
 
-        // deal 404
+        // 404 处理
         this.app.use(async (ctx: Context) => {
             ctx.status = 404;
-            ctx.body = '404! content not found !';
+            ctx.body = {
+                success: false,
+                error: '资源不存在',
+                requestId: ctx.state.requestId,
+            };
         });
     }
 
     public start() {
-        const server = this.app.listen(3000, () => {
-            console.log("Server running on http://localhost:3000");
+        const port = config.port;
+        this.server = this.app.listen(port, () => {
+            logger.info(`Server running on http://localhost:${port}`);
             const IP = getIp();
-            console.log(`本机ip是： ${IP}`)
-            console.log(`上传命令： curl -F "file=@文件名" -X POST "http://${IP}:3000/api/uploadFile"`)
+            logger.info(`本机ip: ${IP}`);
+            console.log(`curl -F "file=@文件名" -X POST "http://${IP}:${port}/api/uploadFile"`);
         });
-        //取消超时时间
-        //server.setTimeout(0);
+
+        // 优雅关闭
+        this.setupGracefulShutdown();
+    }
+
+    private setupGracefulShutdown() {
+        const shutdown = async (signal: string) => {
+            logger.info(`Received ${signal}, starting graceful shutdown...`);
+
+            // 关闭 HTTP 服务器
+            this.server.close(async () => {
+                logger.info('HTTP server closed');
+
+                try {
+                    // 关闭数据库连接
+                    const dataSource = getDataSource();
+                    await dataSource.destroy();
+                    logger.info('Database connection closed');
+
+                    // 关闭 Redis
+                    await redis.quit();
+                    logger.info('Redis connection closed');
+
+                    // 关闭 BullMQ
+                    await BullModule.close();
+                    logger.info('BullMQ closed');
+
+                    logger.info('Graceful shutdown completed');
+                    process.exit(0);
+                } catch (err) {
+                    logger.error('Error during shutdown:', err);
+                    process.exit(1);
+                }
+            });
+
+            // 强制关闭超时
+            setTimeout(() => {
+                logger.error('Forced shutdown due to timeout');
+                process.exit(1);
+            }, 30000);
+        };
+
+        process.on('SIGTERM', () => shutdown('SIGTERM'));
+        process.on('SIGINT', () => shutdown('SIGINT'));
     }
 }
 
-//启动服务
 const app = new App();
-
 app.start();
-
-//记录v8快照的
-//new profiler().start();

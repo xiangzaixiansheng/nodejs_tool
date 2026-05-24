@@ -3,10 +3,17 @@ import path from 'path';
 import axios from 'axios';
 import { URL } from 'url';
 
-async function downloadFileFromUrl(
+/**
+ * 从 URL 下载文件
+ * @param fileUrl 文件 URL
+ * @param targetDirectory 目标目录
+ * @param customFileName 可选：手动指定文件名
+ * @returns 下载文件的绝对路径
+ */
+export async function downloadFileFromUrl(
   fileUrl: string,
   targetDirectory: string,
-  customFileName?: string // 可选：手动指定文件名
+  customFileName?: string
 ): Promise<string> {
   try {
     // 尝试从 URL 的查询参数或路径中提取文件名
@@ -54,24 +61,17 @@ async function downloadFileFromUrl(
   }
 }
 
-// 示例：处理微博的复杂 URL
-(async () => {
-  const complexUrl = 'http://127.0.0.1:8080/api/download.mp4';
-  const targetDir = './downloads';
-
-  try {
-    // 方法1：自动从 URL 提取文件名（可能不准确）
-    const autoPath = await downloadFileFromUrl(complexUrl, targetDir);
-    console.log('Auto-detected path:', autoPath);
-
-    // 方法2：手动指定文件名（推荐）
-    const manualPath = await downloadFileFromUrl(
-      complexUrl,
-      targetDir,
-      'video_2186923718701724dfc535959ec07bdf.mp4' // 明确指定文件名
-    );
-    console.log('Manual-specified path:', manualPath);
-  } catch (error) {
-    console.error('Error:', error instanceof Error ? error.message : String(error));
-  }
-})();
+// 使用示例（仅在直接运行此文件时执行）
+// if (require.main === module) {
+//   (async () => {
+//     const complexUrl = 'http://127.0.0.1:8080/api/download.mp4';
+//     const targetDir = './downloads';
+//
+//     try {
+//       const autoPath = await downloadFileFromUrl(complexUrl, targetDir);
+//       console.log('Auto-detected path:', autoPath);
+//     } catch (error) {
+//       console.error('Error:', error);
+//     }
+//   })();
+// }

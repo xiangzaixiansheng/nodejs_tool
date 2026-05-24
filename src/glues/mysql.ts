@@ -1,10 +1,24 @@
-import { createConnection } from "typeorm";
+import { DataSource } from "typeorm";
 import getConfig from "../config";
-//import { entrys } from '../entities'
 
+let AppDataSource: DataSource;
 
 export function createMysqlConnection() {
   const config = getConfig();
-  //config.mysql.entities = entrys || [];
-  return createConnection(config.mysql);
+
+  AppDataSource = new DataSource({
+    ...config.mysql,
+    type: "mysql"
+  });
+
+  return AppDataSource.initialize();
 }
+
+export function getDataSource(): DataSource {
+  if (!AppDataSource || !AppDataSource.isInitialized) {
+    throw new Error("Database not initialized. Call createMysqlConnection first.");
+  }
+  return AppDataSource;
+}
+
+export { AppDataSource };
