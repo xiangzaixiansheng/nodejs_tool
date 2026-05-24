@@ -1,120 +1,105 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.httpClient = void 0;
 exports.httpGet = httpGet;
 exports.httpPost = httpPost;
 exports.httpPut = httpPut;
 exports.httpDelete = httpDelete;
-const axios_1 = __importDefault(require("axios"));
+exports.httpPatch = httpPatch;
+exports.httpClient = request;
 const logger_1 = require("./logger");
-const httpClient = axios_1.default.create({
-    timeout: 30000,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
-exports.httpClient = httpClient;
-httpClient.interceptors.request.use((config) => {
-    logger_1.logger.debug(`HTTP Request: ${config.method?.toUpperCase()} ${config.url}`);
-    return config;
-}, (error) => {
-    logger_1.logger.error('HTTP Request Error:', error);
-    return Promise.reject(error);
-});
-httpClient.interceptors.response.use((response) => {
-    logger_1.logger.debug(`HTTP Response: ${response.status} ${response.config.url}`);
-    return response;
-}, (error) => {
-    if (error.response) {
-        logger_1.logger.error('HTTP Response Error:', {
-            status: error.response.status,
-            url: error.config?.url,
-            data: error.response.data,
+const DEFAULT_TIMEOUT = 30000;
+function buildUrl(url, params) {
+    if (!params || Object.keys(params).length === 0) {
+        return url;
+    }
+    const searchParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+        searchParams.append(key, String(value));
+    }
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}${searchParams.toString()}`;
+}
+async function fetchWithTimeout(url, options, timeout) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
         });
+        return response;
     }
-    else if (error.request) {
-        logger_1.logger.error('HTTP No Response:', error.message);
+    finally {
+        clearTimeout(timeoutId);
     }
-    else {
-        logger_1.logger.error('HTTP Error:', error.message);
-    }
-    return Promise.reject(error);
-});
-async function httpGet(url, config, logEnabled = false) {
+}
+async function request(url, config = {}) {
+    const { method = 'GET', headers = {}, params, body, timeout = DEFAULT_TIMEOUT } = config;
+    const fullUrl = buildUrl(url, params);
+    logger_1.logger.debug(`HTTP Request: ${method} ${fullUrl}`);
     try {
-        const response = await httpClient.get(url, config);
-        if (logEnabled) {
-            logger_1.logger.debug({ data: response.data, url, method: 'GET' });
+        const response = await fetchWithTimeout(fullUrl, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                ...headers,
+            },
+            body: body ? JSON.stringify(body) : undefined,
+        }, timeout);
+        logger_1.logger.debug(`HTTP Response: ${response.status} ${fullUrl}`);
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            return {
+                success: false,
+                error: errorText || `HTTP ${response.status}`,
+                statusCode: response.status,
+            };
+        }
+        const contentType = response.headers.get('content-type');
+        let data;
+        if (contentType?.includes('application/json')) {
+            data = await response.json();
+        }
+        else {
+            data = await response.text();
         }
         return {
             success: true,
-            data: response.data,
+            data,
             statusCode: response.status,
         };
     }
-    catch (err) {
-        return {
-            success: false,
-            error: err?.response?.data?.message || err.message,
-            statusCode: err?.response?.status || -1,
-        };
-    }
-}
-async function httpPost(url, data, config, logEnabled = false) {
-    try {
-        const response = await httpClient.post(url, data, config);
-        if (logEnabled) {
-            logger_1.logger.debug({ data: response.data, url, method: 'POST' });
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        if (error instanceof Error && error.name === 'AbortError') {
+            logger_1.logger.error('HTTP Request Timeout:', { url, method });
+            return {
+                success: false,
+                error: '请求超时',
+                statusCode: -1,
+            };
         }
-        return {
-            success: true,
-            data: response.data,
-            statusCode: response.status,
-        };
-    }
-    catch (err) {
+        logger_1.logger.error('HTTP Request Error:', { error: errorMessage, url, method });
         return {
             success: false,
-            error: err?.response?.data?.message || err.message,
-            statusCode: err?.response?.status || -1,
+            error: errorMessage,
+            statusCode: -1,
         };
     }
 }
-async function httpPut(url, data, config) {
-    try {
-        const response = await httpClient.put(url, data, config);
-        return {
-            success: true,
-            data: response.data,
-            statusCode: response.status,
-        };
-    }
-    catch (err) {
-        return {
-            success: false,
-            error: err?.response?.data?.message || err.message,
-            statusCode: err?.response?.status || -1,
-        };
-    }
+async function httpGet(url, config) {
+    return request(url, { ...config, method: 'GET' });
+}
+async function httpPost(url, body, config) {
+    return request(url, { ...config, method: 'POST', body });
+}
+async function httpPut(url, body, config) {
+    return request(url, { ...config, method: 'PUT', body });
 }
 async function httpDelete(url, config) {
-    try {
-        const response = await httpClient.delete(url, config);
-        return {
-            success: true,
-            data: response.data,
-            statusCode: response.status,
-        };
-    }
-    catch (err) {
-        return {
-            success: false,
-            error: err?.response?.data?.message || err.message,
-            statusCode: err?.response?.status || -1,
-        };
-    }
+    return request(url, { ...config, method: 'DELETE' });
+}
+async function httpPatch(url, body, config) {
+    return request(url, { ...config, method: 'PATCH', body });
 }
 //# sourceMappingURL=httpClient.js.map

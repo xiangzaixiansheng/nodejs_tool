@@ -7,7 +7,7 @@ export declare class ApiService {
         sortedDesc: number[];
         chunked: number[][];
     }>;
-    testRequestV1(): Promise<import("../util/httpClient").ApiResponse<any>>;
+    testRequestV1(): Promise<import("../util/httpClient").ApiResponse<unknown>>;
     uploadFileByStream(ctx: Context): Promise<{
         filename: any;
         size: any;

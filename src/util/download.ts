@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import axios from 'axios';
 import { URL } from 'url';
 
 /**
@@ -44,12 +43,30 @@ export async function downloadFileFromUrl(
       fs.mkdirSync(targetDirectory, { recursive: true });
     }
 
-    // 下载文件
-    const response = await axios.get(fileUrl, { responseType: 'stream' });
+    // 使用内置 fetch 下载文件
+    const response = await fetch(fileUrl);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    // 获取响应体作为 ReadableStream
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('Response body is empty');
+    }
+
     const filePath = path.join(targetDirectory, fileName);
     const writer = fs.createWriteStream(filePath);
 
-    response.data.pipe(writer);
+    // 读取流并写入文件
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      writer.write(Buffer.from(value));
+    }
+
+    writer.end();
 
     // 返回绝对路径
     return new Promise((resolve, reject) => {
@@ -60,18 +77,3 @@ export async function downloadFileFromUrl(
     throw new Error(`Failed to download file: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
-
-// 使用示例（仅在直接运行此文件时执行）
-// if (require.main === module) {
-//   (async () => {
-//     const complexUrl = 'http://127.0.0.1:8080/api/download.mp4';
-//     const targetDir = './downloads';
-//
-//     try {
-//       const autoPath = await downloadFileFromUrl(complexUrl, targetDir);
-//       console.log('Auto-detected path:', autoPath);
-//     } catch (error) {
-//       console.error('Error:', error);
-//     }
-//   })();
-// }

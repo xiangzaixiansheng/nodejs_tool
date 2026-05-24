@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.downloadFileFromUrl = downloadFileFromUrl;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const axios_1 = __importDefault(require("axios"));
 const url_1 = require("url");
 async function downloadFileFromUrl(fileUrl, targetDirectory, customFileName) {
     try {
@@ -35,10 +34,23 @@ async function downloadFileFromUrl(fileUrl, targetDirectory, customFileName) {
         if (!fs_1.default.existsSync(targetDirectory)) {
             fs_1.default.mkdirSync(targetDirectory, { recursive: true });
         }
-        const response = await axios_1.default.get(fileUrl, { responseType: 'stream' });
+        const response = await fetch(fileUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const reader = response.body?.getReader();
+        if (!reader) {
+            throw new Error('Response body is empty');
+        }
         const filePath = path_1.default.join(targetDirectory, fileName);
         const writer = fs_1.default.createWriteStream(filePath);
-        response.data.pipe(writer);
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done)
+                break;
+            writer.write(Buffer.from(value));
+        }
+        writer.end();
         return new Promise((resolve, reject) => {
             writer.on('finish', () => resolve(path_1.default.resolve(filePath)));
             writer.on('error', reject);
