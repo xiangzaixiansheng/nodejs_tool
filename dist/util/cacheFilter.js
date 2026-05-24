@@ -2,6 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Filter = void 0;
 class Filter {
+    data;
+    conditions;
+    page;
+    page_size;
     constructor(data, conditions = {}, page, page_size) {
         this.data = data;
         this.conditions = conditions;
@@ -12,7 +16,7 @@ class Filter {
     }
     filter() {
         let result = [];
-        (this.data || []).forEach((ele, index) => {
+        (this.data || []).forEach((ele) => {
             if (this.compareObj(ele)) {
                 result.push(ele);
             }
@@ -50,3 +54,4 @@ class Filter {
     }
 }
 exports.Filter = Filter;
+//# sourceMappingURL=cacheFilter.js.map

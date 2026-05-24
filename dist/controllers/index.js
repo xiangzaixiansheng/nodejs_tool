@@ -17,10 +17,11 @@ class IndexController {
         });
     }
 }
+exports.default = IndexController;
 __decorate([
-    httpMethod_1.get("/"),
+    (0, httpMethod_1.get)("/"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], IndexController.prototype, "index", null);
-exports.default = IndexController;
+//# sourceMappingURL=index.js.map

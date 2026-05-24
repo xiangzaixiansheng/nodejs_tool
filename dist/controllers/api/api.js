@@ -16,67 +16,76 @@ const fs_1 = __importDefault(require("fs"));
 const ApiService_1 = require("../../service/ApiService");
 const requestRes_1 = require("../../util/requestRes");
 const httpMethod_1 = require("../../util/decorator/httpMethod");
+const schemas_1 = require("../../schemas");
 class AuthController {
+    service;
     constructor() {
         this.service = new ApiService_1.ApiService();
     }
-    async login(ctx) {
-        return ctx.body = await requestRes_1.wrap(this.service.testRedis());
+    async testRedis(ctx) {
+        return ctx.body = await (0, requestRes_1.wrap)(this.service.testRedis());
     }
     async testArray(ctx) {
-        let query = ctx.query;
-        return ctx.body = await requestRes_1.wrap(this.service.testArray(query));
+        const validated = schemas_1.testArraySchema.parse(ctx.query);
+        return ctx.body = await (0, requestRes_1.wrap)(this.service.testArray(validated));
     }
     async testRequestV1(ctx) {
-        return ctx.body = await requestRes_1.wrap(this.service.testRequestV1());
+        return ctx.body = await (0, requestRes_1.wrap)(this.service.testRequestV1());
     }
     async uploadFile(ctx) {
-        ctx.body = await requestRes_1.wrap(Promise.resolve("success"));
+        ctx.body = await (0, requestRes_1.wrap)(Promise.resolve("success"));
     }
     async uploadFileByStream(ctx) {
-        ctx.body = await requestRes_1.wrap(this.service.uploadFileByStream(ctx));
+        return ctx.body = await (0, requestRes_1.wrap)(this.service.uploadFileByStream(ctx));
     }
     async download(ctx) {
         const filename = "readMe.txt";
         ctx.set('Content-Type', 'application/vnd.openxmlformats');
         ctx.set('Content-Disposition', 'attachment; filename=' + filename);
-        ctx.body = fs_1.default.createReadStream(__dirname + `/../../download/${filename}`);
+        const filePath = __dirname + `/../../download/${filename}`;
+        if (!fs_1.default.existsSync(filePath)) {
+            ctx.status = 404;
+            ctx.body = { success: false, error: '文件不存在' };
+            return;
+        }
+        ctx.body = fs_1.default.createReadStream(filePath);
     }
 }
+exports.default = AuthController;
 __decorate([
-    httpMethod_1.get("/testRedis"),
+    (0, httpMethod_1.get)("/testRedis"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "login", null);
+], AuthController.prototype, "testRedis", null);
 __decorate([
-    httpMethod_1.get("/testArray"),
+    (0, httpMethod_1.get)("/testArray"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "testArray", null);
 __decorate([
-    httpMethod_1.post("/testRequestV1"),
+    (0, httpMethod_1.post)("/testRequestV1"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "testRequestV1", null);
 __decorate([
-    httpMethod_1.post("/uploadFile"),
+    (0, httpMethod_1.post)("/uploadFile"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "uploadFile", null);
 __decorate([
-    httpMethod_1.post("/uploadFile2"),
+    (0, httpMethod_1.post)("/uploadFile2"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "uploadFileByStream", null);
 __decorate([
-    httpMethod_1.get('/download'),
+    (0, httpMethod_1.get)('/download'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "download", null);
-exports.default = AuthController;
+//# sourceMappingURL=api.js.map

@@ -32,7 +32,7 @@ export class profiler {
 
         setTimeout(() => { // 30 秒后采集并导出
             const profile = v8Profiler.stopProfiling(this.title);
-            profile.export( (error: any, result: any) => { // 将内容写入指定文件
+            profile.export( (_error: any, result: any) => { // 将内容写入指定文件
                 fs.writeFileSync(`${_p}/${this.title}.cpuprofile`, result);
                 profile.delete();
             });
@@ -41,7 +41,7 @@ export class profiler {
     }
 
     private checkFileExist(filePath: string): Promise<boolean> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             fs.access(filePath, fs.constants.F_OK, (err) => {
                 if (err) {
                     return resolve(false);

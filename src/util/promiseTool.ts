@@ -186,7 +186,7 @@ export async function executeAsyncTask<T>(
 ): Promise<T> {
   if (id in pendingTask) {
     return new Promise((resolve, reject) => {
-      pendingTask[id].push({ resolve, reject })
+      pendingTask[id]!.push({ resolve, reject })
     })
   }
 
@@ -199,11 +199,11 @@ export async function executeAsyncTask<T>(
     err = err
   }
 
-  for (let t of pendingTask[id]) {
+  for (let t of pendingTask[id]!) {
     if (err != null) {
       t.reject(err)
     } else {
-      t.resolve(res)
+      t.resolve(res!)
     }
   }
 
@@ -224,7 +224,7 @@ export async function executeAsyncTask<T>(
  * @param apiFn 执行函数
  * @returns {Promise<Awaited<unknown>[]>}
  */
-async function promiseAllLimit(limit: Number, array: any, apiFn: Function) {
+export async function promiseAllLimit(limit: Number, array: any, apiFn: Function) {
   const ret = [] // 用于存放所有的promise实例
   const executing: any = [] // 用于存放目前正在执行的promise
   for (const item of array) {

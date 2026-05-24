@@ -21,3 +21,4 @@ exports.patch = createMethodDecorator("patch");
 exports.options = createMethodDecorator("options");
 exports.head = createMethodDecorator("head");
 exports.all = createMethodDecorator("all");
+//# sourceMappingURL=httpMethod.js.map

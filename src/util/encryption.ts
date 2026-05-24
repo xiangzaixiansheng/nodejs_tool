@@ -1,10 +1,6 @@
-import constants = require("constants");
-
 import crypto = require("crypto");
-
-import fs = require("fs");
 import NodeRSA = require("node-rsa");
-import { serverPubKey, clientPrivKey , symmetryKey, iv} from "../config/keys";
+import { serverPubKey, clientPrivKey } from "../config/keys";
 
 //import Keys = require("../config/Keys");
 /**

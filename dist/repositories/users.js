@@ -2,8 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createUser = exports.getAllUserInfo = void 0;
 const entities_1 = require("../entities");
+const mysql_1 = require("../glues/mysql");
 const getAllUserInfo = async (page, size) => {
-    const list = await entities_1.UsersEntity.getRepository()
+    const repository = (0, mysql_1.getDataSource)().getRepository(entities_1.UsersEntity);
+    const list = await repository
         .createQueryBuilder('ui')
         .select([
         "ui.id",
@@ -14,11 +16,13 @@ const getAllUserInfo = async (page, size) => {
         .take(size)
         .orderBy('ui.id', 'DESC')
         .getMany();
-    const count = await entities_1.UsersEntity.getRepository().count();
+    const count = await repository.count();
     return [list, count];
 };
 exports.getAllUserInfo = getAllUserInfo;
 const createUser = async (data) => {
-    return await entities_1.UsersEntity.getRepository().save(data);
+    const repository = (0, mysql_1.getDataSource)().getRepository(entities_1.UsersEntity);
+    return await repository.save(data);
 };
 exports.createUser = createUser;
+//# sourceMappingURL=users.js.map

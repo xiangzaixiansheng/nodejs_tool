@@ -3,9 +3,8 @@
  * @author xiangzai
  */
 
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import { promisify } from "util";
-import { spawn, spawnSync } from "child_process";
 
 const execify = promisify(exec);
 
@@ -14,7 +13,7 @@ const execify = promisify(exec);
  * @param data 
  * @returns 
  */
-async function execPromise(data: string) {
+export async function execPromise(data: string) {
     return await execify(data, {
         maxBuffer: 8000 * 1024
     });

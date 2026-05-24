@@ -6,7 +6,7 @@ import { logger } from './logger';
  * 替代 requestTool.ts 和 reqPromiseTool.ts
  */
 
-interface ApiResponse<T = any> {
+export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
   error?: string;

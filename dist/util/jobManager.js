@@ -1,46 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DeleteJob = exports.CreateJob = exports.StartJob = exports.InitJob = void 0;
-const JobFilePath = '../resources/jobs';
+exports.InitJob = InitJob;
+exports.StartJob = StartJob;
+exports.CreateJob = CreateJob;
+exports.DeleteJob = DeleteJob;
+exports.getJob = getJob;
+exports.getJobCount = getJobCount;
 const CronJob = require('cron').CronJob;
-const fs = require('fs');
 class HashTable {
-    constructor() {
-        this.size = 0;
-        this.entry = new Object();
-        this.containsKey = function (key) {
-            return (key in this.entry);
-        };
-        this.containsValue = function (value) {
-            for (let prop in this.entry) {
-                if (this.entry[prop] == value) {
-                    return true;
-                }
-            }
-            return false;
-        };
-        this.getValues = function () {
-            let values = new Array();
-            for (let prop in this.entry) {
-                values.push(this.entry[prop]);
-            }
-            return values;
-        };
-        this.getKeys = function () {
-            let keys = new Array();
-            for (let prop in this.entry) {
-                keys.push(prop);
-            }
-            return keys;
-        };
-        this.getSize = function () {
-            return this.size;
-        };
-        this.clear = function () {
-            this.size = 0;
-            this.entry = new Object();
-        };
-    }
+    size = 0;
+    entry = {};
     add(key, value) {
         if (!this.containsKey(key)) {
             this.size++;
@@ -55,19 +24,51 @@ class HashTable {
             this.size--;
         }
     }
+    containsKey(key) {
+        return (key in this.entry);
+    }
+    containsValue(value) {
+        for (let prop in this.entry) {
+            if (this.entry[prop] == value) {
+                return true;
+            }
+        }
+        return false;
+    }
+    getValues() {
+        let values = [];
+        for (let prop in this.entry) {
+            values.push(this.entry[prop]);
+        }
+        return values;
+    }
+    getKeys() {
+        let keys = [];
+        for (let prop in this.entry) {
+            keys.push(prop);
+        }
+        return keys;
+    }
+    getSize() {
+        return this.size;
+    }
+    clear() {
+        this.size = 0;
+        this.entry = {};
+    }
 }
 global.JobTable = new HashTable();
 async function InitJob() {
     let jobFiles = [];
     console.info(`[jobManager]jobFiles`, jobFiles);
     if (jobFiles != null) {
-        jobFiles.forEach((item, index, array) => {
+        jobFiles.forEach((item) => {
             try {
-                let { id, crontab, status, cicle, name } = item;
+                let { id, crontab, status, name } = item;
                 if (item != null) {
                     let cronJob = new CronJob(crontab, async () => {
                         console.info('[jobManager]任务执行啦', id);
-                        await exec(id, name);
+                        await execJob(id, name);
                     }, null, true, "Asia/Shanghai");
                     let job = {
                         id,
@@ -87,7 +88,6 @@ async function InitJob() {
     }
     ;
 }
-exports.InitJob = InitJob;
 function StartJob(id) {
     try {
         const job = global.JobTable.getValue(id);
@@ -108,7 +108,6 @@ function StartJob(id) {
         return '开始任务失败';
     }
 }
-exports.StartJob = StartJob;
 ;
 function CreateJob(param) {
     try {
@@ -118,7 +117,7 @@ function CreateJob(param) {
         }
         let cronJob = new CronJob(crontab, async () => {
             console.info('[jobManager]任务执行啦', id);
-            await exec(id, name);
+            await execJob(id, name);
         }, null, true, "Asia/Shanghai");
         let job = {
             id: id,
@@ -136,7 +135,6 @@ function CreateJob(param) {
         return '创建任务失败';
     }
 }
-exports.CreateJob = CreateJob;
 ;
 function DeleteJob(id) {
     try {
@@ -149,22 +147,21 @@ function DeleteJob(id) {
         }
         global.JobTable.remove(id);
         console.info(`[jobManager]已经删除任务 id:${id}`);
+        return 'success';
     }
     catch (e) {
         console.error('[jobManager]删除任务失败：' + e);
         return '删除任务失败';
     }
 }
-exports.DeleteJob = DeleteJob;
 ;
-function GetJob(id) {
+function getJob(id) {
     return global.JobTable.getValue(id);
 }
-;
-function GetCount() {
+function getJobCount() {
     return global.JobTable.getSize();
 }
-;
-async function exec(id, name) {
+async function execJob(id, name) {
     console.info(`任务执行id :${id} name: ${name}`);
 }
+//# sourceMappingURL=jobManager.js.map

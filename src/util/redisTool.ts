@@ -2,6 +2,11 @@ import { Redis } from 'ioredis';
 import Redlock from 'redlock';
 import { redis } from "../glues/redis";
 
+// Redlock Lock type
+type Lock = {
+  unlock: () => Promise<void>;
+};
+
 export interface RedisTool {
   setString(key: string, value: any): Promise<string | null>;
   getString(key: string): Promise<any>;
@@ -20,7 +25,7 @@ class RedisToolImpl implements RedisTool {
     });
   }
 
-  public async lock(resource: string) {
+  public async lock(resource: string): Promise<Lock | false> {
     try {
       const lockKey = resource + "_LOCK_";
       return await this.redlock.lock(lockKey, 1000);

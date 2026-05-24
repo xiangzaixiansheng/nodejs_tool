@@ -22,10 +22,11 @@ const getLimiterConfig = (id, redis) => {
         },
         "max": 10,
         "disableHeader": false,
-        "whitelist": (ctx) => {
+        "whitelist": (_ctx) => {
         },
-        "blacklist": (ctx) => {
+        "blacklist": (_ctx) => {
         }
     };
 };
 exports.getLimiterConfig = getLimiterConfig;
+//# sourceMappingURL=limiterReq.js.map

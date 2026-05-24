@@ -2,13 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.wrap = void 0;
 const wrap = (task) => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         task.then((data) => {
             resolve({
                 statusCode: 200,
                 data,
             });
-        }).catch(err => {
+        }).catch((err) => {
             resolve({
                 statusCode: -100,
                 msg: err.message
@@ -17,3 +17,4 @@ const wrap = (task) => {
     });
 };
 exports.wrap = wrap;
+//# sourceMappingURL=requestRes.js.map

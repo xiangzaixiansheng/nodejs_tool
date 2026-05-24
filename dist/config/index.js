@@ -10,5 +10,9 @@ if (!config) {
     throw new Error(`未找到该环境下的配置文件：${env}`);
 }
 exports.default = () => {
-    return Object.assign(Object.assign({}, config_default_1.default), config);
+    return {
+        ...config_default_1.default,
+        ...config
+    };
 };
+//# sourceMappingURL=index.js.map

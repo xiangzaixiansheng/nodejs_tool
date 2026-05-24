@@ -11,25 +11,30 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersEntity = void 0;
 const typeorm_1 = require("typeorm");
-let UsersEntity = class UsersEntity extends typeorm_1.BaseEntity {
+let UsersEntity = class UsersEntity {
+    id;
+    email;
+    name;
+    sex;
 };
+exports.UsersEntity = UsersEntity;
 __decorate([
-    typeorm_1.PrimaryGeneratedColumn(),
+    (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
 ], UsersEntity.prototype, "id", void 0);
 __decorate([
-    typeorm_1.PrimaryColumn("varchar", { length: 32, comment: "邮箱", unique: true }),
+    (0, typeorm_1.PrimaryColumn)("varchar", { length: 32, comment: "邮箱", unique: true }),
     __metadata("design:type", String)
 ], UsersEntity.prototype, "email", void 0);
 __decorate([
-    typeorm_1.Column("varchar", { length: 16, comment: "姓名", default: "" }),
+    (0, typeorm_1.Column)("varchar", { length: 16, comment: "姓名", default: "" }),
     __metadata("design:type", String)
 ], UsersEntity.prototype, "name", void 0);
 __decorate([
-    typeorm_1.Column("tinyint", { width: 1, default: 0, comment: "性别 0: 女 1: 男" }),
+    (0, typeorm_1.Column)("tinyint", { width: 1, default: 0, comment: "性别 0: 女 1: 男" }),
     __metadata("design:type", Number)
 ], UsersEntity.prototype, "sex", void 0);
-UsersEntity = __decorate([
-    typeorm_1.Entity("users2")
+exports.UsersEntity = UsersEntity = __decorate([
+    (0, typeorm_1.Entity)("users2")
 ], UsersEntity);
-exports.UsersEntity = UsersEntity;
+//# sourceMappingURL=users.js.map

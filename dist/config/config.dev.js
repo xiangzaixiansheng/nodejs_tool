@@ -23,3 +23,4 @@ exports.default = {
         entities: process.env.NODE_ENV === "dev" ? ["src/entities/*"] : ["dist/entities/*"],
     }
 };
+//# sourceMappingURL=config.dev.js.map

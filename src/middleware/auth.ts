@@ -39,6 +39,16 @@ export async function authMiddleware(ctx: Context, next: Next) {
 
   const token = parts[1];
 
+  if (!token) {
+    ctx.status = 401;
+    ctx.body = {
+      success: false,
+      error: 'Token 不能为空',
+      requestId: ctx.state.requestId,
+    };
+    return;
+  }
+
   try {
     const payload = verifyToken(token);
     ctx.user = payload;
@@ -67,7 +77,7 @@ export async function optionalAuthMiddleware(ctx: Context, next: Next) {
 
   if (authHeader) {
     const parts = authHeader.split(' ');
-    if (parts.length === 2 && parts[0] === 'Bearer') {
+    if (parts.length === 2 && parts[0] === 'Bearer' && parts[1]) {
       try {
         const payload = verifyToken(parts[1]);
         ctx.user = payload;

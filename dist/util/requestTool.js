@@ -3,7 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.post = exports.get = void 0;
+exports.get = get;
+exports.post = post;
 const axios_1 = __importDefault(require("axios"));
 async function get(url, options, openLog = true) {
     return axios_1.default
@@ -31,7 +32,6 @@ async function get(url, options, openLog = true) {
         }
     });
 }
-exports.get = get;
 async function post(url, data, options, openLog = true) {
     return axios_1.default
         .post(url, data, options)
@@ -53,4 +53,4 @@ async function post(url, data, options, openLog = true) {
         }
     });
 }
-exports.post = post;
+//# sourceMappingURL=requestTool.js.map

@@ -2,7 +2,14 @@
  * @description 时间格式化/获取时间差
  * @author xiangzai
  */
-import moment = require("moment");
+import dayjs from 'dayjs';
+import weekday from 'dayjs/plugin/weekday';
+import localeData from 'dayjs/plugin/localeData';
+import 'dayjs/locale/zh-cn';
+dayjs.extend(weekday);
+dayjs.extend(localeData);
+dayjs.locale('zh-cn');
+
 export class DateFormat {
     /**
      * 根据时间戳格式化时间
@@ -10,7 +17,7 @@ export class DateFormat {
      * @param format 格式化时间格式,默认'YYYY-MM-DD HH:mm:ss'
      */
     public static dateFormat(date: number, format?: string) {
-        return moment(date).format(format || "YYYY-MM-DD HH:mm:ss");
+        return dayjs(date).format(format || "YYYY-MM-DD HH:mm:ss");
     }
     /**
      * 计算时间差,包括计算，天，时，分，秒
@@ -39,12 +46,12 @@ export class DateFormat {
                 return days;
             case "hours":
                 return hours + days * 24;
-            case "days":
+            case "minutes":
                 return minutes + (hours + days * 24) * 60;
-            case "days":
+            case "seconds":
                 return seconds + (minutes + (hours + days * 24) * 60);
             default:
-                break;
+                return { days, hours, minutes, seconds };
         }
     }
 
@@ -76,9 +83,7 @@ export class DateFormat {
      * @param days 天数
      */
     public static today(days: number) {
-
-        const today = moment();
-
+        const today = dayjs();
         return today.subtract(days, "days").format("YYYY-MM-DD"); /*前一天的时间*/
     }
 
@@ -96,8 +101,7 @@ export class DateFormat {
         displayTimeFormat = 'YYYY-MM-DD',
         rangeTimeFormat = 'YYYY-MM-DD'
     ) {
-        moment.locale('zh-cn')
-        let now = moment() // 当前日期
+        let now = dayjs() // 当前日期
         let result: any[] = []
         const oneDayTime = 24 * 3600 // 一天的秒数 注意不是毫秒数
         let currentUnix = now.unix() // 当前unix时间戳
@@ -116,7 +120,7 @@ export class DateFormat {
         if (step === 'day') {
             for (let k = 1; k <= num; k++) {
                 const obj: any = {}
-                const day = moment.unix(currentUnix)
+                const day = dayjs.unix(currentUnix)
                 obj.timeRange = getTimeRange(day, day)
                 obj.tooltip = getDisplayTime(day, day)
                 result.push(obj)
@@ -126,7 +130,7 @@ export class DateFormat {
         if (step === 'week') {
             // 处理当前这周
             const lastWeek: any = {}
-            const firstDay = moment(now).weekday(0)
+            const firstDay = dayjs(now).day(0)
             lastWeek.timeRange = getTimeRange(firstDay, now)
             lastWeek.tooltip = getDisplayTime(firstDay, now)
             currentUnix = firstDay.unix()
@@ -134,8 +138,8 @@ export class DateFormat {
             // 处理剩余n-1周
             for (let k = 2; k <= num; k++) {
                 const obj: any = {}
-                const sunday = moment.unix(currentUnix - oneDayTime) // 当前周-时间戳减去一天 等于上周日时间戳
-                const monday = moment(moment.unix(currentUnix - oneDayTime).weekday(0))
+                const sunday = dayjs.unix(currentUnix - oneDayTime) // 当前周-时间戳减去一天 等于上周日时间戳
+                const monday = dayjs(dayjs.unix(currentUnix - oneDayTime).day(0))
                 obj.timeRange = getTimeRange(monday, sunday)
                 obj.tooltip = getDisplayTime(monday, sunday)
                 result.push(obj)
@@ -145,7 +149,7 @@ export class DateFormat {
         if (step === 'month') {
             // 处理当前月
             const lastMonth: any = {}
-            const firstDate = moment(now).date(1)
+            const firstDate = dayjs(now).date(1)
             lastMonth.timeRange = getTimeRange(firstDate, now)
             lastMonth.tooltip = getDisplayTime(firstDate, now)
             lastMonth.monthKey = getYearMonth(firstDate);
@@ -154,9 +158,9 @@ export class DateFormat {
             // 处理剩余n-1个月
             for (let k = 2; k <= num; k++) {
                 const obj: any = {}
-                const dayLast = moment.unix(currentUnix - oneDayTime) // 当前月第一天时间戳减去一天 等于上个月最后一天时间戳
+                const dayLast = dayjs.unix(currentUnix - oneDayTime) // 当前月第一天时间戳减去一天 等于上个月最后一天时间戳
                 const n = dayLast.date()
-                const day1 = moment(moment.unix(currentUnix - oneDayTime).date(1))
+                const day1 = dayjs(dayjs.unix(currentUnix - oneDayTime).date(1))
                 obj.timeRange = getTimeRange(day1, dayLast)
                 obj.tooltip = getDisplayTime(day1, dayLast)
                 obj.monthKey = getYearMonth(dayLast);

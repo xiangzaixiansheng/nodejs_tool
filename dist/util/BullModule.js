@@ -4,73 +4,91 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BullModule = void 0;
-const Queue = require("bull");
+const bullmq_1 = require("bullmq");
 const config_1 = __importDefault(require("../config"));
-const redisConfig = config_1.default().redis;
-const { queue1, queue2 } = config_1.default().bullconfig;
+const redisConfig = (0, config_1.default)().redis;
+const { queue1, queue2 } = (0, config_1.default)().bullconfig;
 class BullModule {
+    queue1Instance;
+    queue2Instance;
+    worker1;
+    worker2;
     constructor() {
         this.init();
-        try {
-            this.process();
-        }
-        catch (error) {
-            console.log("任务处理出错");
-        }
     }
     async init() {
-        this.myQueue = new Queue(queue1, {
-            redis: redisConfig, limiter: {
+        this.queue1Instance = new bullmq_1.Queue(queue1, {
+            connection: redisConfig
+        });
+        this.queue2Instance = new bullmq_1.Queue(queue2, {
+            connection: redisConfig
+        });
+        this.startWorkers();
+    }
+    startWorkers() {
+        this.worker1 = new bullmq_1.Worker(queue1, async (job) => {
+            console.log("队列:queue1:任务开始处理", job.id);
+            await this.objImpl(job);
+        }, {
+            connection: redisConfig,
+            limiter: {
                 max: 1000,
                 duration: 5000
             }
         });
-        this.myQueue = new Queue(queue2, redisConfig);
-    }
-    async getQueue() {
-        return this.myQueue;
-    }
-    process() {
-        this.myQueue.process(queue1, async (job, data) => {
-            console.log("队列:queue1:任务开始处理");
-            await this.objImpl(job);
-            data();
-        });
-        this.myQueue.process(queue2, async (job, data) => {
-            console.log("队列:queue2:任务开始处理");
+        this.worker2 = new bullmq_1.Worker(queue2, async (job) => {
+            console.log("队列:queue2:任务开始处理", job.id);
             await this.activeImpl(job);
-            data();
+        }, { connection: redisConfig });
+        this.worker1.on('failed', (job, err) => {
+            console.error(`Worker1 任务失败: ${job?.id}`, err);
+        });
+        this.worker2.on('failed', (job, err) => {
+            console.error(`Worker2 任务失败: ${job?.id}`, err);
         });
     }
-    async objImpl(obj) {
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        console.info("消费任务", JSON.stringify(obj.data));
+    getQueue1() {
+        return this.queue1Instance;
     }
-    async activeImpl(obj) {
+    getQueue2() {
+        return this.queue2Instance;
+    }
+    async objImpl(job) {
         await new Promise(resolve => setTimeout(resolve, 5000));
-        console.info(JSON.stringify(obj.data));
+        console.info("消费任务 queue1:", JSON.stringify(job.data));
+    }
+    async activeImpl(job) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        console.info("消费任务 queue2:", JSON.stringify(job.data));
     }
     async saveObj(obj, objName, jobId) {
         try {
-            (await this.getQueue()).add(queue1, { [objName]: obj, objName: objName }, {
+            const job = await this.queue1Instance.add(queue1, { [objName]: obj, objName }, {
                 removeOnComplete: true,
-                jobId
-            }).then(res => { console.info(`saveObj==${JSON.stringify(res)}`); }).catch(e => { console.info(`saveObj error==${JSON.stringify(e)}`); });
+                jobId: String(jobId)
+            });
+            console.info(`saveObj success: ${job.id}`);
         }
         catch (error) {
-            console.log("添加到队列中处理错误");
+            console.error("添加到队列中处理错误:", error);
         }
     }
     async saveActive(userId) {
         try {
-            (await this.getQueue()).add(queue2, { userId: userId }, {
-                removeOnComplete: true
-            });
+            const job = await this.queue2Instance.add(queue2, { userId }, { removeOnComplete: true });
+            console.info(`saveActive success: ${job.id}`);
         }
         catch (error) {
-            console.log("添加到队列中处理错误");
+            console.error("添加到队列中处理错误:", error);
         }
+    }
+    async close() {
+        await this.worker1?.close();
+        await this.worker2?.close();
+        await this.queue1Instance?.close();
+        await this.queue2Instance?.close();
     }
 }
 exports.BullModule = BullModule;
 exports.default = new BullModule();
+//# sourceMappingURL=BullModule.js.map

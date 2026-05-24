@@ -1,43 +1,38 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.redis_tool = void 0;
-const Redlock = require("redlock");
+const redlock_1 = __importDefault(require("redlock"));
 const redis_1 = require("../glues/redis");
-class RedisTool {
+class RedisToolImpl {
+    redis;
+    redlock;
     constructor(_redis) {
         this.redis = _redis;
-        this.redlock = new Redlock([this.redis], {
-            "retryDelay": 200,
-            "retryCount": 1,
+        this.redlock = new redlock_1.default([this.redis], {
+            retryDelay: 200,
+            retryCount: 1,
         });
     }
-    async lock(ressource) {
+    async lock(resource) {
         try {
-            const lockKey = ressource + "_LOCK_";
+            const lockKey = resource + "_LOCK_";
             return await this.redlock.lock(lockKey, 1000);
         }
         catch (err) {
             return false;
         }
     }
-    lock2(key, timeout = 1000) {
-        return this.redis.set(key, Date.now(), "EX", timeout, "NX").then(Boolean);
-    }
-    lock3(key, timeout = 1000) {
-        return this.redis.eval(`
-        if redis.call("exists", KEYS[1]) == 1 then
-          return 0
-        end
-        redis.call("set", KEYS[1], ARGV[1], "PX", ARGV[2])
-        return 1
-      `, 1, key, Date.now(), timeout).then(response => response === 0);
-    }
     async unlockLock(lock) {
-        return await lock.unlock().then((res) => {
+        try {
+            await lock.unlock();
             console.log("解锁成功");
-        }).catch((e) => {
+        }
+        catch (e) {
             console.log("解锁失败" + e);
-        });
+        }
     }
     async setString(key, value) {
         const val = typeof value !== "string" ? JSON.stringify(value) : value;
@@ -51,8 +46,7 @@ class RedisTool {
     }
     async set(key, value) {
         try {
-            let res = await this.redis.set(key, value);
-            return res;
+            return await this.redis.set(key, value);
         }
         catch (e) {
             console.error(e);
@@ -62,9 +56,9 @@ class RedisTool {
     async getString(key) {
         const data = await this.redis.get(key);
         try {
-            return JSON.parse(data);
+            return data ? JSON.parse(data) : null;
         }
-        catch (e) {
+        catch {
             return data;
         }
     }
@@ -73,7 +67,7 @@ class RedisTool {
             return await this.redis.get(key);
         }
         catch (e) {
-            console.error(e.stack);
+            console.error(e?.stack);
             return null;
         }
     }
@@ -82,16 +76,16 @@ class RedisTool {
             return await this.redis.mget(keys);
         }
         catch (e) {
-            console.error(e.stack);
+            console.error(e?.stack);
             return null;
         }
     }
-    async keys(keys) {
+    async keys(pattern) {
         try {
-            return await this.redis.keys(keys);
+            return await this.redis.keys(pattern);
         }
         catch (e) {
-            console.error(e.stack);
+            console.error(e?.stack);
             return null;
         }
     }
@@ -117,12 +111,15 @@ class RedisTool {
         try {
             const lock = await this.lock(key);
             if (lock) {
-                const res = await this.redis.sadd(key, value);
+                const res = Array.isArray(value)
+                    ? await this.redis.sadd(key, ...value)
+                    : await this.redis.sadd(key, value);
                 this.unlockLock(lock);
                 return res;
             }
             else {
                 console.log("其他线程在处理中");
+                return null;
             }
         }
         catch (e) {
@@ -132,8 +129,7 @@ class RedisTool {
     }
     async smembers(key) {
         try {
-            const res = await this.redis.smembers(key);
-            return res;
+            return await this.redis.smembers(key);
         }
         catch (e) {
             console.error(e);
@@ -142,8 +138,7 @@ class RedisTool {
     }
     async sismember(key, member) {
         try {
-            const res = await this.redis.sismember(key, member);
-            return res;
+            return await this.redis.sismember(key, member);
         }
         catch (e) {
             console.error(e);
@@ -181,12 +176,13 @@ class RedisTool {
         try {
             const lock = await this.lock(key);
             if (lock) {
-                const res = await this.redis.lpush(key, values);
+                const res = await this.redis.lpush(key, ...values);
                 this.unlockLock(lock);
                 return res;
             }
             else {
                 console.log("其他线程在处理中");
+                return null;
             }
         }
         catch (e) {
@@ -241,8 +237,7 @@ class RedisTool {
     }
     async pfadd(key, value) {
         try {
-            const res = await this.redis.pfadd(key, value);
-            return res;
+            return await this.redis.pfadd(key, value);
         }
         catch (e) {
             console.error(e);
@@ -251,8 +246,7 @@ class RedisTool {
     }
     async pfcount(key) {
         try {
-            const res = await this.redis.pfcount(key);
-            return res;
+            return await this.redis.pfcount(key);
         }
         catch (e) {
             console.error(e);
@@ -261,8 +255,7 @@ class RedisTool {
     }
     async pfmerge(key, sourcekey) {
         try {
-            const res = await this.redis.pfmerge(key, sourcekey);
-            return res;
+            return await this.redis.pfmerge(key, ...sourcekey);
         }
         catch (e) {
             console.error(e);
@@ -271,8 +264,7 @@ class RedisTool {
     }
     async setbit(key, offset, value) {
         try {
-            const res = await this.redis.setbit(key, offset, value);
-            return res;
+            return await this.redis.setbit(key, offset, value);
         }
         catch (e) {
             console.error(e);
@@ -288,9 +280,9 @@ class RedisTool {
             return null;
         }
     }
-    expire(key, expiration) {
+    async expire(key, expiration) {
         try {
-            return this.redis.expire(key, expiration);
+            return await this.redis.expire(key, expiration);
         }
         catch (e) {
             console.error(e);
@@ -298,41 +290,37 @@ class RedisTool {
         }
     }
     async scan(pattern, amountPerScan) {
-        let _self = this.redis;
-        const startCursor = '0';
-        let keys = [];
-        return new Promise((resolve, reject) => {
-            function scanNext(cursor = startCursor) {
-                _self.scan(cursor, 'MATCH', pattern, 'COUNT', amountPerScan, function (err, reply) {
-                    if (err) {
-                        throw new Error("redis error");
-                    }
-                    const [cursor, keysScan] = reply;
-                    if (keysScan.length) {
-                        keys.push(...keysScan);
-                    }
-                    if (cursor === '0') {
-                        return resolve(Array.from(new Set(keys)));
-                    }
-                    else {
-                        return scanNext(cursor);
-                    }
-                });
-            }
-            scanNext();
-        });
+        const keys = [];
+        let cursor = '0';
+        do {
+            const [newCursor, scanKeys] = await this.redis.scan(cursor, 'MATCH', pattern, 'COUNT', amountPerScan);
+            keys.push(...scanKeys);
+            cursor = newCursor;
+        } while (cursor !== '0');
+        return Array.from(new Set(keys));
     }
-    unlink(key) {
+    async scan2(key) {
+        const result = [];
+        let cursor = '0';
+        do {
+            const [newCursor, elements] = await this.redis.scan(cursor, "MATCH", key, "COUNT", 300);
+            result.push(...elements);
+            cursor = newCursor;
+        } while (cursor !== '0');
+        return Array.from(new Set(result));
+    }
+    async unlink(key) {
         return this.redis.unlink(key);
     }
-    async goodDEl(pattern, time) {
-        let result = await this.scan(pattern, 100);
-        console.info(`[RedisTool]:goodDEl 一共需要删除key的数量`, result.length);
-        for (let key of result) {
-            console.info(`[RedisTool]:goodDEl 已经删除的key`, key);
+    async goodDel(pattern, time) {
+        const result = await this.scan(pattern, 100);
+        console.info(`[RedisTool]:goodDel 一共需要删除key的数量`, result.length);
+        for (const key of result) {
+            console.info(`[RedisTool]:goodDel 已经删除的key`, key);
             await new Promise(resolve => setTimeout(resolve, time * 1000));
             await this.unlink(key);
         }
     }
 }
-exports.redis_tool = new RedisTool(redis_1.redis);
+exports.redis_tool = new RedisToolImpl(redis_1.redis);
+//# sourceMappingURL=redisTool.js.map

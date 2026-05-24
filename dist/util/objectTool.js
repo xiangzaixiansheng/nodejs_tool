@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isEmptyObject = exports.deepCopy = void 0;
+exports.deepCopy = deepCopy;
+exports.isEmptyObject = isEmptyObject;
 function deepCopy(obj) {
     var newobj = obj.constructor === Array ? [] : {};
     if (typeof obj !== 'object') {
@@ -18,8 +19,7 @@ function deepCopy(obj) {
     }
     return newobj;
 }
-exports.deepCopy = deepCopy;
 function isEmptyObject(obj) {
     return !Object.keys(obj).length;
 }
-exports.isEmptyObject = isEmptyObject;
+//# sourceMappingURL=objectTool.js.map

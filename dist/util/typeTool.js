@@ -16,3 +16,4 @@ function isNumber(value) {
 function isFunction(func) {
     return func && {}.toString.call(func) === '[object Function]';
 }
+//# sourceMappingURL=typeTool.js.map

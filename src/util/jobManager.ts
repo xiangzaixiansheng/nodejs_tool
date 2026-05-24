@@ -1,21 +1,17 @@
 
-import { v4 as uuidv4 } from "uuid";
 /***
  * @description 动态在内存中添加定时任务
  */
 
-//TODO:
-//1、后期优化:任务可以落文件管理
-//2、增加redis锁，让一个实例执行定时任务
-
-const JobFilePath = '../resources/jobs';
 const CronJob = require('cron').CronJob;
-const fs = require('fs');
 
+interface HashTableEntry {
+    [key: string]: any;
+}
 
 class HashTable {
     private size = 0;
-    private entry = new Object();
+    private entry: HashTableEntry = {};
 
     public add(key: string, value: any) {
         if (!this.containsKey(key)) {
@@ -31,11 +27,11 @@ class HashTable {
             this.size--;
         }
     }
-    public containsKey = function (key: string) {
+    public containsKey(key: string): boolean {
         return (key in this.entry);
     }
 
-    public containsValue = function (value: string) {
+    public containsValue(value: string): boolean {
         for (let prop in this.entry) {
             if (this.entry[prop] == value) {
                 return true;
@@ -43,34 +39,26 @@ class HashTable {
         }
         return false;
     }
-    public getValues = function () {
-        let values = new Array();
-        //@ts-ignore
-
+    public getValues(): any[] {
+        let values: any[] = [];
         for (let prop in this.entry) {
-            //@ts-ignore
-
             values.push(this.entry[prop]);
         }
         return values;
     }
-    public getKeys = function () {
-        let keys = new Array();
-        //@ts-ignore
-
+    public getKeys(): string[] {
+        let keys: string[] = [];
         for (let prop in this.entry) {
             keys.push(prop);
         }
         return keys;
     }
-    public getSize = function () {
-        //@ts-ignore
-
+    public getSize(): number {
         return this.size;
     }
-    public clear = function () {
+    public clear() {
         this.size = 0;
-        this.entry = new Object();
+        this.entry = {};
     }
 }
 
@@ -82,13 +70,13 @@ export async function InitJob() {
     let jobFiles: any[] | null = [];
     console.info(`[jobManager]jobFiles`, jobFiles);
     if (jobFiles != null) {
-        jobFiles.forEach((item, index, array) => {
+        jobFiles.forEach((item) => {
             try {
-                let { id, crontab, status, cicle, name } = item;
+                let { id, crontab, status, name } = item;
                 if (item != null) {
                     let cronJob = new CronJob(crontab, async () => {
                         console.info('[jobManager]任务执行啦', id)
-                        await exec(id, name);
+                        await execJob(id, name);
                     }, null, true, "Asia/Shanghai");
 
                     let job = {
@@ -137,7 +125,7 @@ export function CreateJob(param: any) {
         }
         let cronJob = new CronJob(crontab, async () => {
             console.info('[jobManager]任务执行啦', id)
-            await exec(id, name);
+            await execJob(id, name);
         }, null, true, "Asia/Shanghai");
 
         let job = {
@@ -158,7 +146,7 @@ export function CreateJob(param: any) {
 };
 
 
-export function DeleteJob(id: number) {
+export function DeleteJob(id: number): string {
     try {
         let job = global.JobTable.getValue(id);
         if (job != null) {
@@ -168,7 +156,8 @@ export function DeleteJob(id: number) {
             }
         }
         global.JobTable.remove(id);
-        console.info(`[jobManager]已经删除任务 id:${id}`)
+        console.info(`[jobManager]已经删除任务 id:${id}`);
+        return 'success';
     } catch (e) {
         console.error('[jobManager]删除任务失败：' + e);
         return '删除任务失败';
@@ -176,15 +165,15 @@ export function DeleteJob(id: number) {
 };
 
 
-function GetJob(id: number) {
+export function getJob(id: number) {
     return global.JobTable.getValue(id);
-};
+}
 
-function GetCount() {
+export function getJobCount() {
     return global.JobTable.getSize();
-};
+}
 
 
-async function exec(id: number, name: string) {
+async function execJob(id: number, name: string) {
     console.info(`任务执行id :${id} name: ${name}`);
 }

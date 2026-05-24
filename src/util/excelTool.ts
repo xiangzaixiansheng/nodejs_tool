@@ -9,8 +9,8 @@ export class excelTool {
             throw new Error('文件路径不存在');
         }
 
-        const [result] = xlsx.parse(fs.readFileSync(path));
-        return result.data as string[][];
+        const result = xlsx.parse(fs.readFileSync(path) as any);
+        return result[0]?.data as string[][];
     }
     /**
      * @description 数据转成json

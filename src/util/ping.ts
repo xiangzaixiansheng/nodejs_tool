@@ -24,19 +24,19 @@ export const ping = async (proxyHost: string, proxyPort: string) => {
 	}
 };
 
-export const ping2 = async (proxyHost: string, proxyPort: string) => {
+export const ping2 = async (proxyHost: string, proxyPort: string): Promise<boolean> => {
 	const command = `curl --proxy http://${proxyHost}:${proxyPort} http://www.baidu.com`;
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve) => {
 		exec(command, (error: any, stdout: any, stderr: any) => {
 			if (error) {
 				console.error(`${proxyHost}:${proxyPort} 无法连接到代理服务器:`, error);
-				return false;
+				resolve(false);
 			} else if (stderr) {
 				console.error(`${proxyHost}:${proxyPort}错误:`, stderr);
-				return false;
+				resolve(false);
 			} else {
 				console.log(`${proxyHost}:${proxyPort}代理可用`, stdout);
-				return true;
+				resolve(true);
 			}
 		});
 	});

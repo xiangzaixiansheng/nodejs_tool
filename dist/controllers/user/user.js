@@ -12,28 +12,32 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const UserService_1 = require("../../service/UserService");
 const requestRes_1 = require("../../util/requestRes");
 const httpMethod_1 = require("../../util/decorator/httpMethod");
+const schemas_1 = require("../../schemas");
 class UserController {
+    service;
     constructor() {
         this.service = new UserService_1.UserService();
     }
     async getAll(ctx) {
-        return ctx.body = await requestRes_1.wrap(this.service.getAll(ctx.query));
+        const validated = schemas_1.paginationSchema.parse(ctx.query);
+        return ctx.body = await (0, requestRes_1.wrap)(this.service.getAll(validated));
     }
     async create(ctx) {
-        var _a;
-        return ctx.body = await requestRes_1.wrap(this.service.create((_a = ctx.request) === null || _a === void 0 ? void 0 : _a.body));
+        const validated = schemas_1.createUserSchema.parse(ctx.request.body);
+        return ctx.body = await (0, requestRes_1.wrap)(this.service.create(validated));
     }
 }
+exports.default = UserController;
 __decorate([
-    httpMethod_1.get("/getAll"),
+    (0, httpMethod_1.get)("/getAll"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "getAll", null);
 __decorate([
-    httpMethod_1.post("/create"),
+    (0, httpMethod_1.post)("/create"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "create", null);
-exports.default = UserController;
+//# sourceMappingURL=user.js.map

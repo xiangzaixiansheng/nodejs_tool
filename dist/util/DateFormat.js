@@ -1,10 +1,19 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DateFormat = void 0;
-const moment = require("moment");
+const dayjs_1 = __importDefault(require("dayjs"));
+const weekday_1 = __importDefault(require("dayjs/plugin/weekday"));
+const localeData_1 = __importDefault(require("dayjs/plugin/localeData"));
+require("dayjs/locale/zh-cn");
+dayjs_1.default.extend(weekday_1.default);
+dayjs_1.default.extend(localeData_1.default);
+dayjs_1.default.locale('zh-cn');
 class DateFormat {
     static dateFormat(date, format) {
-        return moment(date).format(format || "YYYY-MM-DD HH:mm:ss");
+        return (0, dayjs_1.default)(date).format(format || "YYYY-MM-DD HH:mm:ss");
     }
     static dateCount(date1, date2, returnType) {
         const date3 = date2.getTime() - date1.getTime();
@@ -20,12 +29,12 @@ class DateFormat {
                 return days;
             case "hours":
                 return hours + days * 24;
-            case "days":
+            case "minutes":
                 return minutes + (hours + days * 24) * 60;
-            case "days":
+            case "seconds":
                 return seconds + (minutes + (hours + days * 24) * 60);
             default:
-                break;
+                return { days, hours, minutes, seconds };
         }
     }
     static dateCountFormat(date1, date2) {
@@ -40,12 +49,11 @@ class DateFormat {
         return days + "天 " + hours + "小时 " + minutes + " 分钟" + seconds + " 秒";
     }
     static today(days) {
-        const today = moment();
+        const today = (0, dayjs_1.default)();
         return today.subtract(days, "days").format("YYYY-MM-DD");
     }
     getRangeTimeList(step, num = 50, displayTimeFormat = 'YYYY-MM-DD', rangeTimeFormat = 'YYYY-MM-DD') {
-        moment.locale('zh-cn');
-        let now = moment();
+        let now = (0, dayjs_1.default)();
         let result = [];
         const oneDayTime = 24 * 3600;
         let currentUnix = now.unix();
@@ -61,7 +69,7 @@ class DateFormat {
         if (step === 'day') {
             for (let k = 1; k <= num; k++) {
                 const obj = {};
-                const day = moment.unix(currentUnix);
+                const day = dayjs_1.default.unix(currentUnix);
                 obj.timeRange = getTimeRange(day, day);
                 obj.tooltip = getDisplayTime(day, day);
                 result.push(obj);
@@ -70,15 +78,15 @@ class DateFormat {
         }
         if (step === 'week') {
             const lastWeek = {};
-            const firstDay = moment(now).weekday(0);
+            const firstDay = (0, dayjs_1.default)(now).day(0);
             lastWeek.timeRange = getTimeRange(firstDay, now);
             lastWeek.tooltip = getDisplayTime(firstDay, now);
             currentUnix = firstDay.unix();
             result.push(lastWeek);
             for (let k = 2; k <= num; k++) {
                 const obj = {};
-                const sunday = moment.unix(currentUnix - oneDayTime);
-                const monday = moment(moment.unix(currentUnix - oneDayTime).weekday(0));
+                const sunday = dayjs_1.default.unix(currentUnix - oneDayTime);
+                const monday = (0, dayjs_1.default)(dayjs_1.default.unix(currentUnix - oneDayTime).day(0));
                 obj.timeRange = getTimeRange(monday, sunday);
                 obj.tooltip = getDisplayTime(monday, sunday);
                 result.push(obj);
@@ -87,7 +95,7 @@ class DateFormat {
         }
         if (step === 'month') {
             const lastMonth = {};
-            const firstDate = moment(now).date(1);
+            const firstDate = (0, dayjs_1.default)(now).date(1);
             lastMonth.timeRange = getTimeRange(firstDate, now);
             lastMonth.tooltip = getDisplayTime(firstDate, now);
             lastMonth.monthKey = getYearMonth(firstDate);
@@ -95,9 +103,9 @@ class DateFormat {
             result.push(lastMonth);
             for (let k = 2; k <= num; k++) {
                 const obj = {};
-                const dayLast = moment.unix(currentUnix - oneDayTime);
+                const dayLast = dayjs_1.default.unix(currentUnix - oneDayTime);
                 const n = dayLast.date();
-                const day1 = moment(moment.unix(currentUnix - oneDayTime).date(1));
+                const day1 = (0, dayjs_1.default)(dayjs_1.default.unix(currentUnix - oneDayTime).date(1));
                 obj.timeRange = getTimeRange(day1, dayLast);
                 obj.tooltip = getDisplayTime(day1, dayLast);
                 obj.monthKey = getYearMonth(dayLast);
@@ -109,3 +117,4 @@ class DateFormat {
     }
 }
 exports.DateFormat = DateFormat;
+//# sourceMappingURL=DateFormat.js.map

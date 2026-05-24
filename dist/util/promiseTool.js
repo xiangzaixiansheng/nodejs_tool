@@ -1,10 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.executeAsyncTask = exports.concurrentTask = exports.extraPromise = exports.retryablePromise = exports.promiseWithTimeout = exports.delay = void 0;
+exports.delay = delay;
+exports.promiseWithTimeout = promiseWithTimeout;
+exports.retryablePromise = retryablePromise;
+exports.extraPromise = extraPromise;
+exports.concurrentTask = concurrentTask;
+exports.executeAsyncTask = executeAsyncTask;
+exports.promiseAllLimit = promiseAllLimit;
 async function delay(ms) {
     return new Promise(res => setTimeout(res, ms));
 }
-exports.delay = delay;
 async function promiseWithTimeout(prom, timeout) {
     return new Promise((resolve, reject) => {
         let resolved;
@@ -26,7 +31,6 @@ async function promiseWithTimeout(prom, timeout) {
         prom(resolver, rejector);
     });
 }
-exports.promiseWithTimeout = promiseWithTimeout;
 async function retryablePromise(prom, time = 1, duration = 0) {
     for (let i = 0; i < time; i++) {
         try {
@@ -43,7 +47,6 @@ async function retryablePromise(prom, time = 1, duration = 0) {
     }
     return undefined;
 }
-exports.retryablePromise = retryablePromise;
 async function extraPromise() {
     let resolve;
     let reject;
@@ -58,7 +61,6 @@ async function extraPromise() {
         resolve: resolve,
     };
 }
-exports.extraPromise = extraPromise;
 function concurrentTask() {
     let i = 0;
     const tasks = [];
@@ -82,7 +84,6 @@ function concurrentTask() {
         run,
     };
 }
-exports.concurrentTask = concurrentTask;
 const pendingTask = {};
 async function executeAsyncTask(id, task) {
     if (id in pendingTask) {
@@ -113,4 +114,20 @@ async function executeAsyncTask(id, task) {
     }
     return res;
 }
-exports.executeAsyncTask = executeAsyncTask;
+async function promiseAllLimit(limit, array, apiFn) {
+    const ret = [];
+    const executing = [];
+    for (const item of array) {
+        const p = apiFn(item);
+        ret.push(p);
+        if (limit <= array.length) {
+            const e = p.then(() => executing.splice(executing.indexOf(e), 1));
+            executing.push(e);
+            if (executing.length >= limit) {
+                await Promise.race(executing);
+            }
+        }
+    }
+    return Promise.all(ret);
+}
+//# sourceMappingURL=promiseTool.js.map

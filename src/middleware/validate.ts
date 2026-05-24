@@ -19,9 +19,9 @@ export function validate(schema: ZodSchema, source: 'body' | 'query' | 'params' 
       await next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const messages = error.errors.map((e) => ({
-          field: e.path.join('.'),
-          message: e.message,
+        const messages = error.issues.map((issue) => ({
+          field: issue.path.join('.'),
+          message: issue.message,
         }));
 
         logger.warn({

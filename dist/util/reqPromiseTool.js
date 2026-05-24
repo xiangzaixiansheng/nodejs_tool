@@ -4,74 +4,50 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.reqPostPromiseV2 = exports.reqPostPromise = exports.reqGetPromise = void 0;
-const request_promise_1 = __importDefault(require("request-promise"));
-var BufferHelper = require('bufferhelper');
-var iconv = require('iconv-lite');
-const reqGetPromise = async (uri, qs, headers) => {
-    return new Promise((resolve, reject) => {
-        var bufferHelper = new BufferHelper();
-        request_promise_1.default({
-            uri,
-            qs,
-            encoding: null,
-            headers: headers ? {
-                'User-Agent': 'Request-Promise',
-            } : headers,
-            json: true
-        }).then(data => {
-            if (Buffer.isBuffer(data)) {
-                bufferHelper.concat(data);
-                var decode = iconv.decode(bufferHelper.toBuffer(), 'utf-8');
-                return resolve(decode);
-            }
-            resolve(data);
-        }, err => {
-            let errData = {
-                status: 0,
-                data: err,
-                statusInfo: '失败'
-            };
-            reject(errData);
-        }).catch(err => {
-            let obj = {
-                status: 0,
-                data: err,
-                statusInfo: '未知错误！'
-            };
-            reject(obj);
+const axios_1 = __importDefault(require("axios"));
+const reqGetPromise = async (url, params, headers) => {
+    try {
+        const response = await axios_1.default.get(url, {
+            params,
+            headers,
         });
-    });
+        return { status: 1, data: response.data };
+    }
+    catch (err) {
+        return {
+            status: 0,
+            data: err?.response?.data || err.message,
+            statusInfo: '请求失败',
+        };
+    }
 };
 exports.reqGetPromise = reqGetPromise;
-async function reqPostPromise(uri, params, headers) {
-    return request_promise_1.default({
-        method: 'POST',
-        uri,
-        body: params,
-        headers: headers ? {
-            'Content-type': 'application/json'
-        } : headers,
-        json: true
-    }).then(data => {
-        return { status: 1, data };
-    }).catch(err => {
+const reqPostPromise = async (url, data, headers) => {
+    try {
+        const response = await axios_1.default.post(url, data, { headers });
+        return { status: 1, data: response.data };
+    }
+    catch (err) {
         return {
             status: 0,
-            data: err,
-            statusInfo: '未知错误!'
+            data: err?.response?.data || err.message,
+            statusInfo: '请求失败',
         };
-    });
-}
+    }
+};
 exports.reqPostPromise = reqPostPromise;
-async function reqPostPromiseV2(options) {
-    return request_promise_1.default(options).then(data => {
-        return { status: 1, data };
-    }).catch(err => {
+const reqPostPromiseV2 = async (options) => {
+    try {
+        const response = await (0, axios_1.default)(options);
+        return { status: 1, data: response.data };
+    }
+    catch (err) {
         return {
             status: 0,
-            data: err,
-            statusInfo: '未知错误!'
+            data: err?.response?.data || err.message,
+            statusInfo: '请求失败',
         };
-    });
-}
+    }
+};
 exports.reqPostPromiseV2 = reqPostPromiseV2;
+//# sourceMappingURL=reqPromiseTool.js.map

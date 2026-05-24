@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDate = exports.formatTime = exports.getBeforeDaysTmp = exports.getCurTimeStamp = void 0;
+exports.getDate = exports.getBeforeDaysTmp = exports.getCurTimeStamp = void 0;
+exports.formatTime = formatTime;
 const getCurTimeStamp = () => {
     return Math.round(new Date().getTime() / 1000);
 };
@@ -14,7 +15,6 @@ function formatTime(time) {
     const [month, day] = [time.getMonth() + 1, time.getDate()].map(formatNumber);
     return `${year}-${month}-${day}`;
 }
-exports.formatTime = formatTime;
 function formatNumber(n) {
     return n < 10 ? `0${n}` : n;
 }
@@ -28,3 +28,4 @@ const getDate = (time) => {
     return `${year}-${month}-${date}`;
 };
 exports.getDate = getDate;
+//# sourceMappingURL=timeTool.js.map

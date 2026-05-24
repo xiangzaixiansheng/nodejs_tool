@@ -8,7 +8,7 @@ export class Filter {
 
     public filter(): { listData: Array<object>, total: number } {
         let result: Array<object> = [];
-        (this.data || []).forEach((ele, index) => {
+        (this.data || []).forEach((ele) => {
             if (this.compareObj(ele)) {
                 result.push(ele);
             }
