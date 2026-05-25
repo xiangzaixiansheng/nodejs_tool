@@ -1,48 +1,218 @@
-/**
- * @description 执行命令的方法
- * @author xiangzai
- */
-
-import { exec, spawn } from "child_process";
+import { exec, spawn, execFile, ChildProcess } from "child_process";
 import { promisify } from "util";
 
 const execify = promisify(exec);
+const execFileify = promisify(execFile);
+
+interface ExecOptions {
+    cwd?: string;
+    env?: NodeJS.ProcessEnv;
+    timeout?: number;
+    maxBuffer?: number;
+    shell?: string;
+}
+
+interface ExecResult {
+    stdout: string;
+    stderr: string;
+    code: number;
+}
+
+interface SpawnStreamOptions {
+    cwd?: string;
+    env?: NodeJS.ProcessEnv;
+    shell?: boolean;
+    onStdout?: (chunk: string) => void;
+    onStderr?: (chunk: string) => void;
+}
 
 /**
- * 执行linux命令
- * @param data 
- * @returns 
+ * 执行命令，返回 stdout/stderr
  */
-export async function execPromise(data: string) {
-    return await execify(data, {
-        maxBuffer: 8000 * 1024
+export async function execPromise(
+    command: string,
+    options?: ExecOptions
+): Promise<{ stdout: string; stderr: string }> {
+    return execify(command, {
+        maxBuffer: 8000 * 1024,
+        ...options,
     });
 }
 
 /**
- * @description 指定命令，结束后带有返回值的那种 例如安卓手机录屏等
- * @param command 
- * @param args 
- * @returns 
+ * 执行命令，带超时控制
+ */
+export async function execWithTimeout(
+    command: string,
+    timeoutMs: number,
+    options?: Omit<ExecOptions, "timeout">
+): Promise<ExecResult> {
+    return new Promise((resolve, reject) => {
+        const child = exec(
+            command,
+            { maxBuffer: 8000 * 1024, timeout: timeoutMs, ...options },
+            (error: any, stdout: string, stderr: string) => {
+                if (error && error.killed) {
+                    reject(new Error(`Command timed out after ${timeoutMs}ms: ${command}`));
+                    return;
+                }
+                resolve({
+                    stdout: stdout.toString(),
+                    stderr: stderr.toString(),
+                    code: error ? error.code ?? 1 : 0,
+                });
+            }
+        );
+        child.unref?.();
+    });
+}
+
+/**
+ * 安全执行文件（避免 shell 注入），适合执行二进制文件
+ */
+export async function execFileSafe(
+    file: string,
+    args: string[],
+    options?: ExecOptions
+): Promise<{ stdout: string; stderr: string }> {
+    return execFileify(file, args, {
+        maxBuffer: 8000 * 1024,
+        ...options,
+    });
+}
+
+/**
+ * spawn 方式执行，等待结束返回退出码
  */
 export async function spawnWait(
     command: string,
-    args: readonly string[]
+    args: readonly string[],
+    options?: { cwd?: string; env?: NodeJS.ProcessEnv }
 ): Promise<number> {
     return new Promise((resolve) => {
-        let proc = spawn(command, args, { stdio: "inherit" });
-        proc.on("close", function (code) {
-            return resolve(code || 0);
-        });
+        const proc = spawn(command, args, { stdio: "inherit", ...options });
+        proc.on("close", (code) => resolve(code || 0));
     });
 }
 
 /**
- * exec将子进程输出结果暂放在buffer中，在结果完全返回后，再将输出一次性的以回调函数返回。
- * 如果exec的buffer体积设置的不够大，它将会以一个“maxBuffer exceeded”错误失败告终。
- * 而spawn在子进程开始执行后，就不断的将数据从子进程返回给主进程，它没有回调函数，它通过流的方式发数据传给主进程，
- * 从而实现了多进程之间的数据交换。这个功能的直接用应用场景就是“系统监控”。 
- * 2、书写上，exec更方便一些,将整个命令放在第一个参数中，而spqwn需要拆分。 
- * child_process.spawn('python', ['support.py', i]) 
- * child_process.exec('python support.py '+i, callback)
+ * spawn 方式执行，实时获取输出流（适合长时间运行的命令）
  */
+export function spawnStream(
+    command: string,
+    args: string[],
+    options?: SpawnStreamOptions
+): { child: ChildProcess; result: Promise<ExecResult> } {
+    const { onStdout, onStderr, ...spawnOpts } = options || {};
+
+    const child = spawn(command, args, {
+        ...spawnOpts,
+        stdio: ["pipe", "pipe", "pipe"],
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout?.on("data", (data: Buffer) => {
+        const str = data.toString();
+        stdout += str;
+        onStdout?.(str);
+    });
+
+    child.stderr?.on("data", (data: Buffer) => {
+        const str = data.toString();
+        stderr += str;
+        onStderr?.(str);
+    });
+
+    const result = new Promise<ExecResult>((resolve, reject) => {
+        child.on("close", (code) => {
+            resolve({ stdout, stderr, code: code || 0 });
+        });
+        child.on("error", reject);
+    });
+
+    return { child, result };
+}
+
+/**
+ * 执行命令，失败时自动重试
+ */
+export async function execWithRetry(
+    command: string,
+    retries: number = 3,
+    delayMs: number = 1000,
+    options?: ExecOptions
+): Promise<{ stdout: string; stderr: string }> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            return await execPromise(command, options);
+        } catch (err) {
+            lastError = err as Error;
+            if (attempt < retries) {
+                await new Promise((r) => setTimeout(r, delayMs * (attempt + 1)));
+            }
+        }
+    }
+
+    throw lastError;
+}
+
+/**
+ * 并发执行多个命令，返回所有结果
+ */
+export async function execConcurrent(
+    commands: string[],
+    concurrency: number = 5,
+    options?: ExecOptions
+): Promise<ExecResult[]> {
+    const results: ExecResult[] = [];
+    const executing = new Set<Promise<void>>();
+
+    for (let i = 0; i < commands.length; i++) {
+        const cmd = commands[i]!;
+        const task = (async (index: number, command: string) => {
+            try {
+                const { stdout, stderr } = await execPromise(command, options);
+                results[index] = { stdout, stderr, code: 0 };
+            } catch (err: any) {
+                results[index] = {
+                    stdout: err.stdout || "",
+                    stderr: err.stderr || err.message,
+                    code: err.code ?? 1,
+                };
+            }
+        })(i, cmd).then(() => { executing.delete(task); });
+
+        executing.add(task);
+        if (executing.size >= concurrency) {
+            await Promise.race(executing);
+        }
+    }
+
+    await Promise.all(executing);
+    return results;
+}
+
+/**
+ * 检查命令是否存在（which/where）
+ */
+export async function commandExists(cmd: string): Promise<boolean> {
+    try {
+        const check = process.platform === "win32" ? `where ${cmd}` : `which ${cmd}`;
+        await execPromise(check);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * 执行命令并只返回 stdout（去除尾部换行）
+ */
+export async function execOutput(command: string, options?: ExecOptions): Promise<string> {
+    const { stdout } = await execPromise(command, options);
+    return stdout.trimEnd();
+}
