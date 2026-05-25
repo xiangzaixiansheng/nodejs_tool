@@ -91,6 +91,7 @@ NODE_ENV=prod node dist/index.js
 │   ├── controllers/     # 控制器
 │   │   ├── api/         # API 控制器
 │   │   ├── auth/        # 认证控制器
+│   │   ├── upload/      # 分片上传控制器
 │   │   └── user/        # 用户控制器
 │   ├── entities/        # TypeORM 实体
 │   ├── glues/           # 数据库/Redis 连接
@@ -108,6 +109,9 @@ NODE_ENV=prod node dist/index.js
 ├── public/              # 静态资源
 ├── dist/                # 编译输出
 └── doc/                 # 文档
+    ├── chunked-upload.md    # 分片上传文档
+    ├── redis-lock-guide.md  # Redis 锁使用指南
+    └── exec-tool-guide.md   # 命令执行工具指南
 ```
 
 ## 四、API 接口
@@ -131,6 +135,12 @@ http://localhost:3000/api-docs
 | GET | `/api/getUserInfo` | 获取用户信息（需认证）|
 | POST | `/api/createUser` | 创建用户 |
 | POST | `/api/uploadFile` | 文件上传 |
+| POST | `/upload/init` | 分片上传-初始化 |
+| POST | `/upload/chunk` | 分片上传-上传分片 |
+| POST | `/upload/merge` | 分片上传-合并文件 |
+| GET | `/upload/status` | 分片上传-查询进度 |
+| GET | `/upload/list` | 分片上传-文件列表 |
+| GET | `/uploads/files/:name` | 下载已上传文件 |
 | GET | `/api/testRedis` | Redis 测试 |
 | GET | `/api/testArray` | 数组工具测试 |
 
@@ -187,7 +197,52 @@ await bullModule.saveObj({ key: 'value' }, 'myObj', 1);
 await bullModule.saveActive('userId');
 ```
 
-### 5. 日志
+### 5. 分片上传
+
+企业级大文件分片上传，支持并发上传、暂停续传：
+
+```bash
+# 初始化上传
+curl -X POST http://localhost:3000/upload/init \
+  -H "Content-Type: application/json" \
+  -d '{"filename": "large.zip", "totalSize": 104857600, "chunkSize": 2097152}'
+
+# 上传分片
+curl -X POST http://localhost:3000/upload/chunk \
+  -F "chunk=@chunk_0" -F "uploadId=xxx" -F "chunkIndex=0"
+
+# 合并文件
+curl -X POST http://localhost:3000/upload/merge \
+  -H "Content-Type: application/json" \
+  -d '{"uploadId": "xxx"}'
+```
+
+前端管理页面访问 `http://localhost:3000`，支持拖拽上传、进度展示、配置调整。
+
+### 6. 分布式锁
+
+基于 Redis 的企业级分布式锁（`src/util/redisLock.ts`）：
+
+```typescript
+import { redisLock } from './util/redisLock';
+
+// 互斥锁
+await redisLock.withLock('order:user:123', async () => {
+    await createOrder(data);
+});
+
+// 幂等保护
+const { executed } = await redisLock.idempotent('payment:xxx', async () => {
+    await charge(amount);
+});
+
+// 信号量（限制并发数）
+const permit = await redisLock.acquireSemaphore('api-gateway', 5);
+```
+
+支持：互斥锁、可重入锁、读写锁、信号量、自旋锁、幂等保护、定时任务锁、自动续期。
+
+### 7. 日志
 
 使用 log4js 记录日志：
 
@@ -218,6 +273,17 @@ treer -i node_modules -o result.txt
 ```
 
 ## 八、升级记录
+
+### 2026-05-25 第二轮优化
+
+- ✅ 企业级分片上传（并发控制、暂停续传、前端管理页面）
+- ✅ Redis 分布式锁工具（互斥/可重入/读写/信号量/幂等）
+- ✅ execTool 扩展（超时、重试、并发、流式输出、安全执行）
+- ✅ 加密模块重写（移除 node-rsa，内置 crypto + AES-256-GCM）
+- ✅ 修复命令注入风险（ping.ts exec → execFile）
+- ✅ 移除 fs-extra 依赖，统一使用原生 fs
+- ✅ 消除 any 类型、过时回调写法
+- ✅ 上传接口限流豁免
 
 ### 2024-05-24 企业级升级
 
