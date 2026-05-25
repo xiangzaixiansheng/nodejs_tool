@@ -26,6 +26,7 @@ import { bullModule as BullModule } from "./util/BullModule";
 import { errorHandler } from "./middleware/errorHandler";
 import { requestIdMiddleware } from "./middleware/requestId";
 import { healthCheck, readyCheck } from "./middleware/healthCheck";
+import multer from "@koa/multer";
 
 const config = getConfigSync();
 const uploadDir = __dirname + "/uploads";
@@ -66,9 +67,8 @@ class App {
                     process.env.NODE_ENV === "dev" ? "../public" : "./public"
                 ),
                 {
-                    index: false,
                     hidden: false,
-                    defer: true,
+                    defer: false,
                 }
             )
         );
@@ -96,6 +96,40 @@ class App {
 
         // 限流
         this.app.use(ratelimit(getLimiterConfig((ctx: Context) => ctx.ip, redis)));
+
+        // 分片上传专用路由（需要 multer 中间件）
+        const chunkUpload = multer({
+            storage: multer.diskStorage({
+                destination: (_req, _file, cb) => {
+                    const tempDir = path.join(uploadDir, "temp");
+                    fs.mkdirSync(tempDir, { recursive: true });
+                    cb(null, tempDir);
+                },
+                filename: (_req, file, cb) => {
+                    cb(null, `${Date.now()}-${file.originalname}`);
+                },
+            }),
+            limits: { fileSize: 100 * 1024 * 1024 },
+        });
+        this.router.post('/upload/chunk', chunkUpload.single('chunk'), async (ctx: Context) => {
+            const { UploadController } = await import("./controllers/upload/upload");
+            const ctrl = new UploadController();
+            await ctrl.uploadChunk(ctx);
+        });
+
+        // 上传文件静态服务（/uploads/files/xxx 可直接下载）
+        const uploadFilesRouter = new Router({ prefix: '/uploads/files' });
+        uploadFilesRouter.get('/(.*)', async (ctx) => {
+            const filePath = path.join(uploadDir, 'files', ctx.params[0] || '');
+            if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+                ctx.set('Content-Disposition', `attachment; filename="${path.basename(filePath)}"`);
+                ctx.body = fs.createReadStream(filePath);
+            } else {
+                ctx.status = 404;
+                ctx.body = { success: false, error: '文件不存在' };
+            }
+        });
+        this.app.use(uploadFilesRouter.routes());
 
         // 路由
         await addRouter(this.router);

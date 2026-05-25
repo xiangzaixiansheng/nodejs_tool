@@ -107,3 +107,8 @@ typings/
 .DS_Store
 
 .vscode
+
+# Upload files (runtime data)
+src/uploads/chunks/
+src/uploads/files/
+src/uploads/temp/
