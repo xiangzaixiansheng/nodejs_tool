@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.bullModule = exports.BullModule = void 0;
 const bullmq_1 = require("bullmq");
 const config_1 = require("../config");
+const logger_1 = require("./logger");
 const redisConfig = (0, config_1.getConfigSync)().redis;
 const { queue1, queue2 } = (0, config_1.getConfigSync)().bullconfig;
 class BullModule {
@@ -24,7 +25,7 @@ class BullModule {
     }
     startWorkers() {
         this.worker1 = new bullmq_1.Worker(queue1, async (job) => {
-            console.log("队列:queue1:任务开始处理", job.id);
+            logger_1.logger.info(`Queue1: processing job ${job.id}`);
             await this.objImpl(job);
         }, {
             connection: redisConfig,
@@ -34,14 +35,14 @@ class BullModule {
             }
         });
         this.worker2 = new bullmq_1.Worker(queue2, async (job) => {
-            console.log("队列:queue2:任务开始处理", job.id);
+            logger_1.logger.info(`Queue2: processing job ${job.id}`);
             await this.activeImpl(job);
         }, { connection: redisConfig });
         this.worker1.on('failed', (job, err) => {
-            console.error(`Worker1 任务失败: ${job?.id}`, err);
+            logger_1.logger.error(`Worker1 job failed: ${job?.id}`, err);
         });
         this.worker2.on('failed', (job, err) => {
-            console.error(`Worker2 任务失败: ${job?.id}`, err);
+            logger_1.logger.error(`Worker2 job failed: ${job?.id}`, err);
         });
     }
     getQueue1() {
@@ -52,11 +53,11 @@ class BullModule {
     }
     async objImpl(job) {
         await new Promise(resolve => setTimeout(resolve, 5000));
-        console.info("消费任务 queue1:", JSON.stringify(job.data));
+        logger_1.logger.info(`Consumed queue1 job: ${JSON.stringify(job.data)}`);
     }
     async activeImpl(job) {
         await new Promise(resolve => setTimeout(resolve, 5000));
-        console.info("消费任务 queue2:", JSON.stringify(job.data));
+        logger_1.logger.info(`Consumed queue2 job: ${JSON.stringify(job.data)}`);
     }
     async saveObj(obj, objName, jobId) {
         try {
@@ -64,19 +65,19 @@ class BullModule {
                 removeOnComplete: true,
                 jobId: String(jobId)
             });
-            console.info(`saveObj success: ${job.id}`);
+            logger_1.logger.info(`saveObj success: ${job.id}`);
         }
         catch (error) {
-            console.error("添加到队列中处理错误:", error);
+            logger_1.logger.error("Failed to add job to queue1:", error);
         }
     }
     async saveActive(userId) {
         try {
             const job = await this.queue2Instance.add(queue2, { userId }, { removeOnComplete: true });
-            console.info(`saveActive success: ${job.id}`);
+            logger_1.logger.info(`saveActive success: ${job.id}`);
         }
         catch (error) {
-            console.error("添加到队列中处理错误:", error);
+            logger_1.logger.error("Failed to add job to queue2:", error);
         }
     }
     async close() {

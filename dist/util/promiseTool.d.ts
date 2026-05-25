@@ -1,5 +1,5 @@
 export type PromiseResolver<T> = (val: T) => void;
-export type PromiseReject = (reason: any) => void;
+export type PromiseReject = (reason: unknown) => void;
 export type PromiseCallback<T> = (res: PromiseResolver<T>, rej: PromiseReject) => void;
 export declare function delay(ms: number): Promise<unknown>;
 export declare function promiseWithTimeout<T>(prom: PromiseCallback<T>, timeout: number): Promise<T>;
@@ -14,5 +14,5 @@ export declare function concurrentTask<R>(): {
     run: () => Promise<R[]>;
 };
 export declare function executeAsyncTask<T>(id: string, task: () => Promise<T>): Promise<T>;
-export declare function promiseAllLimit(limit: Number, array: any, apiFn: Function): Promise<any[]>;
+export declare function promiseAllLimit<T, R>(limit: number, array: T[], apiFn: (item: T) => Promise<R>): Promise<R[]>;
 //# sourceMappingURL=promiseTool.d.ts.map

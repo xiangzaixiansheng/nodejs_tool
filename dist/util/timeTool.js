@@ -1,31 +1,23 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDate = exports.getBeforeDaysTmp = exports.getCurTimeStamp = void 0;
-exports.formatTime = formatTime;
-const getCurTimeStamp = () => {
-    return Math.round(new Date().getTime() / 1000);
-};
 exports.getCurTimeStamp = getCurTimeStamp;
-const getBeforeDaysTmp = (days = 2) => {
-    return Math.round((new Date().getTime() - 24 * 60 * 60 * 1000 * days) / 1000);
-};
 exports.getBeforeDaysTmp = getBeforeDaysTmp;
-function formatTime(time) {
-    const year = time.getFullYear();
-    const [month, day] = [time.getMonth() + 1, time.getDate()].map(formatNumber);
-    return `${year}-${month}-${day}`;
-}
-function formatNumber(n) {
-    return n < 10 ? `0${n}` : n;
-}
-const getDate = (time) => {
-    time = new Date(time);
-    const [year, month, date] = [
-        time.getFullYear(),
-        time.getMonth() + 1,
-        time.getDate(),
-    ].map((n) => (n < 10 ? `0${n}` : n));
-    return `${year}-${month}-${date}`;
-};
+exports.formatTime = formatTime;
 exports.getDate = getDate;
+const dayjs_1 = __importDefault(require("dayjs"));
+function getCurTimeStamp() {
+    return Math.round(Date.now() / 1000);
+}
+function getBeforeDaysTmp(days = 2) {
+    return Math.round((0, dayjs_1.default)().subtract(days, 'day').valueOf() / 1000);
+}
+function formatTime(time) {
+    return (0, dayjs_1.default)(time).format('YYYY-MM-DD');
+}
+function getDate(time) {
+    return (0, dayjs_1.default)(time).format('YYYY-MM-DD');
+}
 //# sourceMappingURL=timeTool.js.map

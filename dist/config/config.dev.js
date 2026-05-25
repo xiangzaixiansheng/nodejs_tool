@@ -5,24 +5,24 @@ exports.config = {
     redis: {
         port: 6379,
         host: "127.0.0.1",
-        db: 0
+        db: 0,
     },
     bullconfig: {
         queue1: "queue1",
-        queue2: "queue2"
+        queue2: "queue2",
     },
     mysql: {
         type: "mysql",
         host: "localhost",
         port: 3306,
         username: "root",
-        password: "xiangzai",
+        password: process.env.DB_PASSWORD || "",
         database: "sqlstudy",
-        synchronize: process.env.NODE_ENV === 'dev',
-        logging: process.env.NODE_ENV === 'dev',
+        synchronize: true,
+        logging: true,
         timezone: "+8:00",
-        entities: process.env.NODE_ENV === "dev" ? ["src/entities/*"] : ["dist/entities/*"],
-    }
+        entities: ["src/entities/*"],
+    },
 };
 exports.default = exports.config;
 //# sourceMappingURL=config.dev.js.map

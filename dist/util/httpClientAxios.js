@@ -51,16 +51,16 @@ function handleAxiosError(error) {
         });
         switch (status) {
             case 401:
-                console.error('登录已过期，请重新登录');
+                logger_1.logger.warn('Axios: 登录已过期，请重新登录');
                 break;
             case 403:
-                console.error('没有权限执行此操作');
+                logger_1.logger.warn('Axios: 没有权限执行此操作');
                 break;
             case 404:
-                console.error('请求的资源不存在');
+                logger_1.logger.warn('Axios: 请求的资源不存在');
                 break;
             case 500:
-                console.error('服务器内部错误');
+                logger_1.logger.error('Axios: 服务器内部错误');
                 break;
         }
     }

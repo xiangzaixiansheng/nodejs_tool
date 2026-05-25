@@ -3,23 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deepCopy = deepCopy;
 exports.isEmptyObject = isEmptyObject;
 function deepCopy(obj) {
-    var newobj = obj.constructor === Array ? [] : {};
-    if (typeof obj !== 'object') {
-        return obj;
-    }
-    else {
-        for (var i in obj) {
-            if (typeof obj[i] === 'object') {
-                newobj[i] = deepCopy(obj[i]);
-            }
-            else {
-                newobj[i] = obj[i];
-            }
-        }
-    }
-    return newobj;
+    return structuredClone(obj);
 }
 function isEmptyObject(obj) {
-    return !Object.keys(obj).length;
+    return Object.keys(obj).length === 0;
 }
 //# sourceMappingURL=objectTool.js.map

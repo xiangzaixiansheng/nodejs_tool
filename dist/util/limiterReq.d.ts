@@ -1,6 +1,8 @@
-export declare const getLimiterConfig: (id: any, redis: any) => {
+import { Redis } from 'ioredis';
+import { Context } from 'koa';
+export declare function getLimiterConfig(id: (ctx: Context) => string, redis: Redis): {
     driver: string;
-    db: any;
+    db: Redis;
     duration: number;
     errorMessage: {
         statusCode: number;
@@ -9,7 +11,7 @@ export declare const getLimiterConfig: (id: any, redis: any) => {
             msg: string;
         };
     };
-    id: any;
+    id: (ctx: Context) => string;
     headers: {
         "Retry-After": string;
         reset: string;
@@ -17,7 +19,7 @@ export declare const getLimiterConfig: (id: any, redis: any) => {
     };
     max: number;
     disableHeader: boolean;
-    whitelist: (_ctx: any) => void;
-    blacklist: (_ctx: any) => void;
+    whitelist: (_ctx: unknown) => boolean | undefined;
+    blacklist: (_ctx: unknown) => boolean | undefined;
 };
 //# sourceMappingURL=limiterReq.d.ts.map

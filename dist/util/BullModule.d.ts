@@ -11,7 +11,7 @@ export declare class BullModule {
     getQueue2(): Queue;
     objImpl(job: Job): Promise<void>;
     activeImpl(job: Job): Promise<void>;
-    saveObj(obj: any, objName: string, jobId: number): Promise<void>;
+    saveObj(obj: unknown, objName: string, jobId: number): Promise<void>;
     saveActive(userId: string): Promise<void>;
     close(): Promise<void>;
 }

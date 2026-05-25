@@ -39,6 +39,7 @@ const path = __importStar(require("path"));
 const path_1 = require("path");
 require("reflect-metadata");
 const constants_1 = require("../constant/constants");
+const logger_1 = require("../util/logger");
 const ctrPath = (0, path_1.resolve)(__dirname, "../controllers");
 const addRouter = async (router) => {
     await recursion(ctrPath, "");
@@ -69,7 +70,7 @@ const addRouter = async (router) => {
                 const routePath = prefix + route.path;
                 const obj = ctr[route.name].bind(ctr);
                 router[route.method](routePath, obj);
-                console.log("添加路由成功:" + routePath);
+                logger_1.logger.debug("Route registered: " + routePath);
             });
         }
     }

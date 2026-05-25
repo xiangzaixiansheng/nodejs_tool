@@ -40,43 +40,40 @@ exports.excelTool = void 0;
 const node_xlsx_1 = __importDefault(require("node-xlsx"));
 const fs = __importStar(require("fs"));
 class excelTool {
-    parseXlsxFile(path) {
-        if (!path) {
+    parseXlsxFile(filePath) {
+        if (!filePath) {
             throw new Error('文件路径不存在');
         }
-        const result = node_xlsx_1.default.parse(fs.readFileSync(path));
+        const buffer = fs.readFileSync(filePath);
+        const result = node_xlsx_1.default.parse(buffer);
         return result[0]?.data;
     }
     getDataFromExcelData(data, format = {}) {
-        data = data.slice();
-        const fields = data.shift();
-        data = data.filter((item) => !!item.length);
-        if (!data.length) {
+        const rows = data.slice();
+        const fields = rows.shift();
+        const filtered = rows.filter((item) => item.length > 0);
+        if (!filtered.length) {
             throw new Error('数据为空');
         }
-        const list = [];
-        data.forEach((item) => {
+        return filtered.map((item) => {
             const ret = {};
             item.forEach((value, index) => {
-                const field = format[fields[index]] || fields[index];
+                const originalField = fields?.[index] ?? '';
+                const field = format[originalField] || originalField;
                 ret[field] = value;
             });
-            list.push(ret);
+            return ret;
         });
-        return list;
     }
     geneExcel(listData, fields) {
         const group = listData.map((item) => {
-            const values = [];
-            fields.forEach((field) => {
-                values.push(item[field]);
-            });
-            return values;
+            return fields.map((field) => String(item[field] ?? ''));
         });
         return node_xlsx_1.default.build([
             {
                 name: '模板',
-                data: [fields, ...group]
+                data: [fields, ...group],
+                options: {}
             }
         ]);
     }

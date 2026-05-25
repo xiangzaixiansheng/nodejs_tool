@@ -4,8 +4,8 @@ type Lock = {
     unlock: () => Promise<void>;
 };
 export interface RedisTool {
-    setString(key: string, value: any): Promise<string | null>;
-    getString(key: string): Promise<any>;
+    setString(key: string, value: unknown): Promise<string | null>;
+    getString(key: string): Promise<unknown>;
     del(key: string): Promise<number | null>;
 }
 declare class RedisToolImpl implements RedisTool {
@@ -13,9 +13,9 @@ declare class RedisToolImpl implements RedisTool {
     redlock: Redlock;
     constructor(_redis: Redis);
     lock(resource: string): Promise<Lock | false>;
-    unlockLock(lock: any): Promise<void>;
-    setString(key: string, value: any): Promise<"OK" | null>;
-    set(key: string, value: any): Promise<"OK" | null>;
+    unlockLock(lock: Lock): Promise<void>;
+    setString(key: string, value: unknown): Promise<"OK" | null>;
+    set(key: string, value: string | number): Promise<"OK" | null>;
     getString(key: string): Promise<any>;
     get(key: string): Promise<string | null>;
     mget(keys: string[]): Promise<(string | null)[] | null>;
@@ -24,7 +24,7 @@ declare class RedisToolImpl implements RedisTool {
     sadd(key: string, value: string | string[]): Promise<number | null>;
     smembers(key: string): Promise<string[] | null>;
     sismember(key: string, member: string): Promise<number | null>;
-    hset(key: string, field: string, value: any): Promise<number | null>;
+    hset(key: string, field: string, value: string | number): Promise<number | null>;
     hget(key: string, field: string): Promise<string | null>;
     lpush(key: string, values: string[]): Promise<number | null>;
     hgetall(key: string): Promise<Record<string, string> | null>;

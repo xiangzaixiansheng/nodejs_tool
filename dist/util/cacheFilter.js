@@ -5,52 +5,43 @@ class Filter {
     data;
     conditions;
     page;
-    page_size;
-    constructor(data, conditions = {}, page, page_size) {
+    pageSize;
+    constructor(data, conditions = {}, page, pageSize) {
         this.data = data;
         this.conditions = conditions;
-        this.page = page;
-        this.page_size = page_size;
-        this.page = this.processNumber(this.page, 1);
-        this.page_size = this.processNumber(this.page_size, 20);
+        this.page = this.processNumber(page, 1);
+        this.pageSize = this.processNumber(pageSize, 20);
     }
     filter() {
-        let result = [];
-        (this.data || []).forEach((ele) => {
-            if (this.compareObj(ele)) {
-                result.push(ele);
-            }
-        });
-        return this.limit(result);
+        const result = (this.data || []).filter((item) => this.matchConditions(item));
+        return this.paginate(result);
     }
-    compareObj(itemObj) {
-        for (let con_key in this.conditions) {
-            let _item = typeof itemObj[con_key] == 'string' ? itemObj[con_key] : itemObj[con_key].toString();
-            if (!_item.match(this.conditions[con_key])) {
+    matchConditions(item) {
+        for (const key of Object.keys(this.conditions)) {
+            const pattern = this.conditions[key];
+            if (!pattern)
+                continue;
+            const value = String(item[key] ?? '');
+            if (!value.match(pattern)) {
                 return false;
             }
         }
         return true;
     }
-    limit(obj) {
-        let _res = [];
-        const skip = (this.page - 1) * this.page_size;
-        (obj || []).forEach((item, index) => {
-            if (index >= skip && index < skip + this.page_size) {
-                _res.push(item);
-            }
-        });
+    paginate(items) {
+        const skip = (this.page - 1) * this.pageSize;
+        const listData = items.slice(skip, skip + this.pageSize);
         return {
-            listData: _res,
-            total: _res.length
+            listData,
+            total: items.length,
         };
     }
     processNumber(value, defaultValue) {
-        value = Number(value);
-        if (!value || value < 1) {
+        const num = Number(value);
+        if (!num || num < 1) {
             return defaultValue;
         }
-        return value;
+        return num;
     }
 }
 exports.Filter = Filter;

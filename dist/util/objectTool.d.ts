@@ -1,3 +1,3 @@
-export declare function deepCopy(obj: any): any;
+export declare function deepCopy<T>(obj: T): T;
 export declare function isEmptyObject(obj: object): boolean;
 //# sourceMappingURL=objectTool.d.ts.map

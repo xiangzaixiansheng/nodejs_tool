@@ -12,7 +12,7 @@ async function delay(ms) {
 }
 async function promiseWithTimeout(prom, timeout) {
     return new Promise((resolve, reject) => {
-        let resolved;
+        let resolved = false;
         const resolver = (val) => {
             if (resolved) {
                 return;
@@ -84,33 +84,33 @@ function concurrentTask() {
         run,
     };
 }
-const pendingTask = {};
+const pendingTasks = {};
 async function executeAsyncTask(id, task) {
-    if (id in pendingTask) {
+    if (id in pendingTasks) {
         return new Promise((resolve, reject) => {
-            pendingTask[id].push({ resolve, reject });
+            pendingTasks[id].push({ resolve: resolve, reject });
         });
     }
     let res;
-    let err;
+    let error;
     try {
-        pendingTask[id] = [];
+        pendingTasks[id] = [];
         res = await task();
     }
-    catch (err) {
-        err = err;
+    catch (e) {
+        error = e;
     }
-    for (let t of pendingTask[id]) {
-        if (err != null) {
-            t.reject(err);
+    for (const t of pendingTasks[id]) {
+        if (error != null) {
+            t.reject(error);
         }
         else {
             t.resolve(res);
         }
     }
-    delete pendingTask[id];
-    if (err != null) {
-        throw err;
+    delete pendingTasks[id];
+    if (error != null) {
+        throw error;
     }
     return res;
 }
@@ -121,7 +121,9 @@ async function promiseAllLimit(limit, array, apiFn) {
         const p = apiFn(item);
         ret.push(p);
         if (limit <= array.length) {
-            const e = p.then(() => executing.splice(executing.indexOf(e), 1));
+            const e = p.then(() => {
+                executing.splice(executing.indexOf(e), 1);
+            });
             executing.push(e);
             if (executing.length >= limit) {
                 await Promise.race(executing);

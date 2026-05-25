@@ -14,30 +14,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ApiController = void 0;
 const fs_1 = __importDefault(require("fs"));
-const ApiService_1 = require("../../service/ApiService");
 const requestRes_1 = require("../../util/requestRes");
 const httpMethod_1 = require("../../util/decorator/httpMethod");
-const schemas_1 = require("../../schemas");
 class ApiController {
-    service;
-    constructor() {
-        this.service = new ApiService_1.ApiService();
-    }
-    async testRedis(ctx) {
-        return ctx.body = await (0, requestRes_1.wrap)(this.service.testRedis());
-    }
-    async testArray(ctx) {
-        const validated = schemas_1.testArraySchema.parse(ctx.query);
-        return ctx.body = await (0, requestRes_1.wrap)(this.service.testArray(validated));
-    }
-    async testRequestV1(ctx) {
-        return ctx.body = await (0, requestRes_1.wrap)(this.service.testRequestV1());
-    }
     async uploadFile(ctx) {
         ctx.body = await (0, requestRes_1.wrap)(Promise.resolve("success"));
-    }
-    async uploadFileByStream(ctx) {
-        return ctx.body = await (0, requestRes_1.wrap)(this.service.uploadFileByStream(ctx));
     }
     async download(ctx) {
         const filename = "readMe.txt";
@@ -54,35 +35,11 @@ class ApiController {
 }
 exports.ApiController = ApiController;
 __decorate([
-    (0, httpMethod_1.get)("/testRedis"),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], ApiController.prototype, "testRedis", null);
-__decorate([
-    (0, httpMethod_1.get)("/testArray"),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], ApiController.prototype, "testArray", null);
-__decorate([
-    (0, httpMethod_1.post)("/testRequestV1"),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], ApiController.prototype, "testRequestV1", null);
-__decorate([
     (0, httpMethod_1.post)("/uploadFile"),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ApiController.prototype, "uploadFile", null);
-__decorate([
-    (0, httpMethod_1.post)("/uploadFile2"),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], ApiController.prototype, "uploadFileByStream", null);
 __decorate([
     (0, httpMethod_1.get)('/download'),
     __metadata("design:type", Function),
