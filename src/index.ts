@@ -94,8 +94,13 @@ class App {
         // 连接数据库
         await createConnection();
 
-        // 限流
-        this.app.use(ratelimit(getLimiterConfig((ctx: Context) => ctx.ip, redis)));
+        // 限流（上传接口豁免）
+        this.app.use(async (ctx: Context, next) => {
+            if (ctx.path.startsWith('/upload/')) {
+                return next();
+            }
+            return ratelimit(getLimiterConfig((ctx: Context) => ctx.ip, redis))(ctx, next);
+        });
 
         // 分片上传专用路由（需要 multer 中间件）
         const chunkUpload = multer({
