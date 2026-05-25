@@ -12,108 +12,101 @@ dayjs_1.default.extend(weekday_1.default);
 dayjs_1.default.extend(localeData_1.default);
 dayjs_1.default.locale('zh-cn');
 class DateFormat {
-    static dateFormat(date, format) {
-        return (0, dayjs_1.default)(date).format(format || "YYYY-MM-DD HH:mm:ss");
+    static dateFormat(date, format = "YYYY-MM-DD HH:mm:ss") {
+        return (0, dayjs_1.default)(date).format(format);
     }
     static dateCount(date1, date2, returnType) {
-        const date3 = date2.getTime() - date1.getTime();
-        const days = Math.floor(date3 / (24 * 3600 * 1000));
-        const leave1 = date3 % (24 * 3600 * 1000);
-        const hours = Math.floor(leave1 / (3600 * 1000));
-        const leave2 = leave1 % (3600 * 1000);
-        const minutes = Math.floor(leave2 / (60 * 1000));
-        const leave3 = leave2 % (60 * 1000);
-        const seconds = Math.round(leave3 / 1000);
+        const diff = this.calcDiff(date1, date2);
         switch (returnType) {
             case "days":
-                return days;
+                return diff.days;
             case "hours":
-                return hours + days * 24;
+                return diff.hours + diff.days * 24;
             case "minutes":
-                return minutes + (hours + days * 24) * 60;
+                return diff.minutes + (diff.hours + diff.days * 24) * 60;
             case "seconds":
-                return seconds + (minutes + (hours + days * 24) * 60);
+                return diff.seconds + (diff.minutes + (diff.hours + diff.days * 24) * 60) * 60;
             default:
-                return { days, hours, minutes, seconds };
+                return diff;
         }
     }
     static dateCountFormat(date1, date2) {
-        const date3 = date2.getTime() - date1.getTime();
-        const days = Math.floor(date3 / (24 * 3600 * 1000));
-        const leave1 = date3 % (24 * 3600 * 1000);
+        const { days, hours, minutes, seconds } = this.calcDiff(date1, date2);
+        return `${days}天 ${hours}小时 ${minutes}分钟 ${seconds}秒`;
+    }
+    static today(days) {
+        return (0, dayjs_1.default)().subtract(days, "days").format("YYYY-MM-DD");
+    }
+    static getRangeTimeList(step, num = 50, displayTimeFormat = "YYYY-MM-DD", rangeTimeFormat = "YYYY-MM-DD") {
+        const result = [];
+        const oneDaySeconds = 24 * 3600;
+        let currentUnix = (0, dayjs_1.default)().unix();
+        const formatRange = (begin, end) => {
+            return [begin.format(rangeTimeFormat), end.format(rangeTimeFormat)];
+        };
+        const formatTooltip = (begin, end) => {
+            return `${begin.format(displayTimeFormat)}-${end.format(displayTimeFormat)}`;
+        };
+        if (step === "day") {
+            for (let k = 1; k <= num; k++) {
+                const day = dayjs_1.default.unix(currentUnix);
+                result.push({
+                    timeRange: formatRange(day, day),
+                    tooltip: formatTooltip(day, day),
+                });
+                currentUnix -= oneDaySeconds;
+            }
+        }
+        if (step === "week") {
+            const now = (0, dayjs_1.default)();
+            const firstDay = now.day(0);
+            result.push({
+                timeRange: formatRange(firstDay, now),
+                tooltip: formatTooltip(firstDay, now),
+            });
+            currentUnix = firstDay.unix();
+            for (let k = 2; k <= num; k++) {
+                const sunday = dayjs_1.default.unix(currentUnix - oneDaySeconds);
+                const monday = dayjs_1.default.unix(currentUnix - oneDaySeconds).day(0);
+                result.push({
+                    timeRange: formatRange(monday, sunday),
+                    tooltip: formatTooltip(monday, sunday),
+                });
+                currentUnix -= oneDaySeconds * 7;
+            }
+        }
+        if (step === "month") {
+            const now = (0, dayjs_1.default)();
+            const firstDate = now.date(1);
+            result.push({
+                timeRange: formatRange(firstDate, now),
+                tooltip: formatTooltip(firstDate, now),
+                monthKey: firstDate.format("YYYY-MM"),
+            });
+            currentUnix = firstDate.unix();
+            for (let k = 2; k <= num; k++) {
+                const dayLast = dayjs_1.default.unix(currentUnix - oneDaySeconds);
+                const day1 = dayjs_1.default.unix(currentUnix - oneDaySeconds).date(1);
+                result.push({
+                    timeRange: formatRange(day1, dayLast),
+                    tooltip: formatTooltip(day1, dayLast),
+                    monthKey: dayLast.format("YYYY-MM"),
+                });
+                currentUnix -= oneDaySeconds * dayLast.date();
+            }
+        }
+        return result;
+    }
+    static calcDiff(date1, date2) {
+        const diffMs = date2.getTime() - date1.getTime();
+        const days = Math.floor(diffMs / (24 * 3600 * 1000));
+        const leave1 = diffMs % (24 * 3600 * 1000);
         const hours = Math.floor(leave1 / (3600 * 1000));
         const leave2 = leave1 % (3600 * 1000);
         const minutes = Math.floor(leave2 / (60 * 1000));
         const leave3 = leave2 % (60 * 1000);
         const seconds = Math.round(leave3 / 1000);
-        return days + "天 " + hours + "小时 " + minutes + " 分钟" + seconds + " 秒";
-    }
-    static today(days) {
-        const today = (0, dayjs_1.default)();
-        return today.subtract(days, "days").format("YYYY-MM-DD");
-    }
-    getRangeTimeList(step, num = 50, displayTimeFormat = 'YYYY-MM-DD', rangeTimeFormat = 'YYYY-MM-DD') {
-        let now = (0, dayjs_1.default)();
-        let result = [];
-        const oneDayTime = 24 * 3600;
-        let currentUnix = now.unix();
-        const getTimeRange = (begin, end) => {
-            return [begin.format(rangeTimeFormat), end.format(rangeTimeFormat)];
-        };
-        const getDisplayTime = (begin, end) => {
-            return begin.format(displayTimeFormat) + '-' + end.format(displayTimeFormat);
-        };
-        const getYearMonth = (begin) => {
-            return begin.format('YYYY-MM');
-        };
-        if (step === 'day') {
-            for (let k = 1; k <= num; k++) {
-                const obj = {};
-                const day = dayjs_1.default.unix(currentUnix);
-                obj.timeRange = getTimeRange(day, day);
-                obj.tooltip = getDisplayTime(day, day);
-                result.push(obj);
-                currentUnix -= oneDayTime;
-            }
-        }
-        if (step === 'week') {
-            const lastWeek = {};
-            const firstDay = (0, dayjs_1.default)(now).day(0);
-            lastWeek.timeRange = getTimeRange(firstDay, now);
-            lastWeek.tooltip = getDisplayTime(firstDay, now);
-            currentUnix = firstDay.unix();
-            result.push(lastWeek);
-            for (let k = 2; k <= num; k++) {
-                const obj = {};
-                const sunday = dayjs_1.default.unix(currentUnix - oneDayTime);
-                const monday = (0, dayjs_1.default)(dayjs_1.default.unix(currentUnix - oneDayTime).day(0));
-                obj.timeRange = getTimeRange(monday, sunday);
-                obj.tooltip = getDisplayTime(monday, sunday);
-                result.push(obj);
-                currentUnix -= oneDayTime * 7;
-            }
-        }
-        if (step === 'month') {
-            const lastMonth = {};
-            const firstDate = (0, dayjs_1.default)(now).date(1);
-            lastMonth.timeRange = getTimeRange(firstDate, now);
-            lastMonth.tooltip = getDisplayTime(firstDate, now);
-            lastMonth.monthKey = getYearMonth(firstDate);
-            currentUnix = firstDate.unix();
-            result.push(lastMonth);
-            for (let k = 2; k <= num; k++) {
-                const obj = {};
-                const dayLast = dayjs_1.default.unix(currentUnix - oneDayTime);
-                const n = dayLast.date();
-                const day1 = (0, dayjs_1.default)(dayjs_1.default.unix(currentUnix - oneDayTime).date(1));
-                obj.timeRange = getTimeRange(day1, dayLast);
-                obj.tooltip = getDisplayTime(day1, dayLast);
-                obj.monthKey = getYearMonth(dayLast);
-                result.push(obj);
-                currentUnix -= oneDayTime * n;
-            }
-        }
-        return result;
+        return { days, hours, minutes, seconds };
     }
 }
 exports.DateFormat = DateFormat;

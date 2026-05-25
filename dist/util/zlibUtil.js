@@ -36,11 +36,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.compressFolder = void 0;
-const fs = __importStar(require("fs-extra"));
+exports.compressFolder = compressFolder;
+const fs = __importStar(require("fs"));
 const zlib = __importStar(require("zlib"));
 const archiver_1 = __importDefault(require("archiver"));
-const compressFolder = (sourceFolderPath, outputFilePath) => {
+function compressFolder(sourceFolderPath, outputFilePath) {
     return new Promise((resolve, reject) => {
         const output = fs.createWriteStream(outputFilePath);
         const archive = (0, archiver_1.default)("zip", {
@@ -48,9 +48,6 @@ const compressFolder = (sourceFolderPath, outputFilePath) => {
         });
         output.on("close", () => {
             resolve("压缩已完成");
-        });
-        output.on("end", () => {
-            resolve("数据写入已结束");
         });
         archive.on("warning", (warning) => {
             reject(warning);
@@ -62,6 +59,5 @@ const compressFolder = (sourceFolderPath, outputFilePath) => {
         archive.directory(sourceFolderPath, false);
         archive.finalize();
     });
-};
-exports.compressFolder = compressFolder;
+}
 //# sourceMappingURL=zlibUtil.js.map

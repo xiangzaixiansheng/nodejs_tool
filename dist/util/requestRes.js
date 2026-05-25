@@ -1,20 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.wrap = void 0;
-const wrap = (task) => {
-    return new Promise((resolve) => {
-        task.then((data) => {
-            resolve({
-                statusCode: 200,
-                data,
-            });
-        }).catch((err) => {
-            resolve({
-                statusCode: -100,
-                msg: err.message
-            });
-        });
-    });
-};
 exports.wrap = wrap;
+async function wrap(task) {
+    try {
+        const data = await task;
+        return { statusCode: 200, data };
+    }
+    catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        return { statusCode: -100, msg };
+    }
+}
 //# sourceMappingURL=requestRes.js.map

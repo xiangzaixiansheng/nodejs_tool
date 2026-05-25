@@ -33,52 +33,41 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getIp = exports.fileType = exports.exitsFolder = void 0;
 exports.checkFileExist = checkFileExist;
+exports.ensureDirectory = ensureDirectory;
+exports.fileType = fileType;
+exports.getIp = getIp;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const os = __importStar(require("os"));
-function checkFileExist(filePath) {
-    return new Promise((resolve) => {
-        fs.access(filePath, fs.constants.F_OK, (err) => {
-            if (err) {
-                return resolve(false);
-            }
-            return resolve(true);
-        });
-    });
-}
-const exitsFolder = async function (reaPath) {
-    const absPath = path.resolve(__dirname, reaPath);
+async function checkFileExist(filePath) {
     try {
-        await fs.promises.stat(absPath);
+        await fs.promises.access(filePath, fs.constants.F_OK);
+        return true;
     }
-    catch (e) {
-        await fs.promises.mkdir(absPath, { recursive: true });
+    catch {
+        return false;
     }
-};
-exports.exitsFolder = exitsFolder;
-const fileType = (file) => {
-    let dir;
-    if (/\.(png|jpe?g|gif|svg)(\?\S*)?$/.test(file.originalname)) {
-        dir = 'images';
+}
+async function ensureDirectory(dirPath) {
+    await fs.promises.mkdir(path.resolve(dirPath), { recursive: true });
+}
+function fileType(file) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const typeMap = {
+        images: [".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"],
+        audio: [".mp3", ".wav", ".flac", ".aac", ".ogg"],
+        video: [".mp4", ".avi", ".mkv", ".mov", ".webm"],
+        doc: [".doc", ".docx", ".txt", ".pdf", ".xls", ".xlsx"],
+    };
+    for (const [type, extensions] of Object.entries(typeMap)) {
+        if (extensions.includes(ext)) {
+            return type;
+        }
     }
-    else if (/\.(mp3)(\?\S*)?$/.test(file.originalname)) {
-        dir = 'audio';
-    }
-    else if (/\.mp4|avi/.test(file.originalname)) {
-        dir = 'video';
-    }
-    else if (/\.(doc|txt)(\?\S*)?$/.test(file.originalname)) {
-        dir = 'doc';
-    }
-    else {
-        dir = 'other';
-    }
-    return dir;
-};
-exports.fileType = fileType;
-const getIp = () => {
+    return "other";
+}
+function getIp() {
     const netDict = os.networkInterfaces();
     for (const devName in netDict) {
         const netList = netDict[devName];
@@ -92,25 +81,19 @@ const getIp = () => {
         }
     }
     return undefined;
-};
-exports.getIp = getIp;
+}
+const VM_MAC_PREFIXES = [
+    "00:05:69",
+    "00:0C:29",
+    "00:50:56",
+    "00:1C:42",
+    "00:03:FF",
+    "00:0F:4B",
+    "00:16:3E",
+    "08:00:27",
+    "00:00:00",
+];
 function isVmNetwork(mac) {
-    const vmNetwork = [
-        "00:05:69",
-        "00:0C:29",
-        "00:50:56",
-        "00:1C:42",
-        "00:03:FF",
-        "00:0F:4B",
-        "00:16:3E",
-        "08:00:27",
-        "00:00:00",
-    ];
-    for (const macPrefix of vmNetwork) {
-        if (mac.startsWith(macPrefix)) {
-            return true;
-        }
-    }
-    return false;
+    return VM_MAC_PREFIXES.some((prefix) => mac.startsWith(prefix));
 }
 //# sourceMappingURL=fileTool.js.map
