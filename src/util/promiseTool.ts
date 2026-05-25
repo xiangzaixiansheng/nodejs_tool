@@ -8,7 +8,7 @@
  * 类型定义
  */
 export type PromiseResolver<T> = (val: T) => void
-export type PromiseReject = (reason: any) => void
+export type PromiseReject = (reason: unknown) => void
 export type PromiseCallback<T> = (
   res: PromiseResolver<T>,
   rej: PromiseReject,
@@ -29,27 +29,25 @@ export async function promiseWithTimeout<T>(
   timeout: number,
 ) {
   return new Promise<T>((resolve, reject) => {
-    let resolved: boolean
+    let resolved = false;
     const resolver = (val: T) => {
       if (resolved) {
-        return
+        return;
       }
+      resolved = true;
+      resolve(val);
+    };
 
-      resolved = true
-      resolve(val)
-    }
-
-    const rejector = (reason: any) => {
+    const rejector = (reason: unknown) => {
       if (resolved) {
-        return
+        return;
       }
+      resolved = true;
+      reject(reason);
+    };
 
-      resolved = true
-      reject(reason)
-    }
-
-    setTimeout(() => rejector(new Error('timeout')), timeout)
-    prom(resolver, rejector)
+    setTimeout(() => rejector(new Error('timeout')), timeout);
+    prom(resolver, rejector);
   })
 }
 
@@ -160,91 +158,69 @@ export function concurrentTask<R>() {
 }
 
 
-/**
- * @description 处理重复的promise对象请求
- */
-interface Task<T = any> {
+interface PendingTask<T = unknown> {
   resolve: (res: T) => void
-  reject: (err: any) => void
+  reject: (err: unknown) => void
 }
 
-const pendingTask: { [id: string]: Task[] } = {}
-/**
- * 执行异步任务, 它会处理重复发起的任务
- * @param id 任务唯一索引
- * @param task 异步执行方法
- *
- * @example
- *
- * ```js
- * const res = await executeAsyncTask<User>('get-user', async () => Promise<User>) // 如多次发起请求，只会请求一次
- * ```
- */
+const pendingTasks: Record<string, PendingTask[]> = {};
+
 export async function executeAsyncTask<T>(
   id: string,
   task: () => Promise<T>,
 ): Promise<T> {
-  if (id in pendingTask) {
+  if (id in pendingTasks) {
     return new Promise((resolve, reject) => {
-      pendingTask[id]!.push({ resolve, reject })
-    })
+      pendingTasks[id]!.push({ resolve: resolve as (res: unknown) => void, reject });
+    });
   }
 
-  let res: T | undefined
-  let err: any
+  let res: T | undefined;
+  let error: unknown;
   try {
-    pendingTask[id] = []
-    res = await task()
-  } catch (err) {
-    err = err
+    pendingTasks[id] = [];
+    res = await task();
+  } catch (e) {
+    error = e;
   }
 
-  for (let t of pendingTask[id]!) {
-    if (err != null) {
-      t.reject(err)
+  for (const t of pendingTasks[id]!) {
+    if (error != null) {
+      t.reject(error);
     } else {
-      t.resolve(res!)
+      t.resolve(res);
     }
   }
 
-  delete pendingTask[id]
+  delete pendingTasks[id];
 
-  if (err != null) {
-    throw err
+  if (error != null) {
+    throw error;
   }
 
-  return res as T
+  return res as T;
 }
 
 
-/**
- * @description 控制promise.all并发数量
- * @param limit 并发数
- * @param array 参数列表
- * @param apiFn 执行函数
- * @returns {Promise<Awaited<unknown>[]>}
- */
-export async function promiseAllLimit(limit: Number, array: any, apiFn: Function) {
-  const ret = [] // 用于存放所有的promise实例
-  const executing: any = [] // 用于存放目前正在执行的promise
+export async function promiseAllLimit<T, R>(
+  limit: number,
+  array: T[],
+  apiFn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const ret: Promise<R>[] = [];
+  const executing: Promise<void>[] = [];
   for (const item of array) {
-    const p = apiFn(item)
-    ret.push(p)
+    const p = apiFn(item);
+    ret.push(p);
     if (limit <= array.length) {
-      // then回调中，当这个promise状态变为fulfilled后，将其从正在执行的promise列表executing中删除
-      const e = p.then(() => executing.splice(executing.indexOf(e), 1))
-      executing.push(e)
+      const e: Promise<void> = p.then(() => {
+        executing.splice(executing.indexOf(e), 1);
+      });
+      executing.push(e);
       if (executing.length >= limit) {
-        // 一旦正在执行的promise列表数量等于限制数，就使用Promise.race等待某一个promise状态发生变更，
-        // 状态变更后，就会执行上面then的回调，将该promise从executing中删除，
-        // 然后再进入到下一次for循环，生成新的promise进行补充
-        await Promise.race(executing)
+        await Promise.race(executing);
       }
     }
   }
-  return Promise.all(ret)
+  return Promise.all(ret);
 }
-
-// promiseAllLimit(3, paramsArr, apiFn).then((res) => {
-// 	console.log('Promise.all 结果',res)
-// }

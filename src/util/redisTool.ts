@@ -1,15 +1,15 @@
 import { Redis } from 'ioredis';
 import Redlock from 'redlock';
 import { redis } from "../glues/redis";
+import { logger } from './logger';
 
-// Redlock Lock type
 type Lock = {
   unlock: () => Promise<void>;
 };
 
 export interface RedisTool {
-  setString(key: string, value: any): Promise<string | null>;
-  getString(key: string): Promise<any>;
+  setString(key: string, value: unknown): Promise<string | null>;
+  getString(key: string): Promise<unknown>;
   del(key: string): Promise<number | null>;
 }
 
@@ -29,35 +29,35 @@ class RedisToolImpl implements RedisTool {
     try {
       const lockKey = resource + "_LOCK_";
       return await this.redlock.lock(lockKey, 1000);
-    } catch (err) {
+    } catch {
       return false;
     }
   }
 
-  public async unlockLock(lock: any) {
+  public async unlockLock(lock: Lock) {
     try {
       await lock.unlock();
-      console.log("解锁成功");
-    } catch (e: any) {
-      console.log("解锁失败" + e);
+      logger.debug("Redis lock released");
+    } catch (e) {
+      logger.error("Redis unlock failed:", e);
     }
   }
 
-  public async setString(key: string, value: any) {
+  public async setString(key: string, value: unknown) {
     const val = typeof value !== "string" ? JSON.stringify(value) : value;
     try {
       return await this.redis.set(key, val);
     } catch (e) {
-      console.error(e);
+      logger.error("Redis setString failed:", e);
       return null;
     }
   }
 
-  public async set(key: string, value: any) {
+  public async set(key: string, value: string | number) {
     try {
       return await this.redis.set(key, value);
     } catch (e) {
-      console.error(e);
+      logger.error("Redis set failed:", e);
       return null;
     }
   }
@@ -74,8 +74,8 @@ class RedisToolImpl implements RedisTool {
   public async get(key: string) {
     try {
       return await this.redis.get(key);
-    } catch (e: any) {
-      console.error(e?.stack);
+    } catch (e) {
+      logger.error("Redis get failed:", e);
       return null;
     }
   }
@@ -83,8 +83,8 @@ class RedisToolImpl implements RedisTool {
   public async mget(keys: string[]) {
     try {
       return await this.redis.mget(keys);
-    } catch (e: any) {
-      console.error(e?.stack);
+    } catch (e) {
+      logger.error("Redis mget failed:", e);
       return null;
     }
   }
@@ -92,8 +92,8 @@ class RedisToolImpl implements RedisTool {
   public async keys(pattern: string) {
     try {
       return await this.redis.keys(pattern);
-    } catch (e: any) {
-      console.error(e?.stack);
+    } catch (e) {
+      logger.error("Redis keys failed:", e);
       return null;
     }
   }
@@ -106,11 +106,11 @@ class RedisToolImpl implements RedisTool {
         this.unlockLock(lock);
         return res;
       } else {
-        console.log("其他线程在处理中");
+        logger.warn("Redis del: lock acquisition failed for key:", key);
         return null;
       }
     } catch (e) {
-      console.error(e);
+      logger.error("Redis del failed:", e);
       return null;
     }
   }
@@ -125,11 +125,11 @@ class RedisToolImpl implements RedisTool {
         this.unlockLock(lock);
         return res;
       } else {
-        console.log("其他线程在处理中");
+        logger.warn("Redis sadd: lock acquisition failed for key:", key);
         return null;
       }
     } catch (e) {
-      console.error(e);
+      logger.error("Redis sadd failed:", e);
       return null;
     }
   }
@@ -138,7 +138,7 @@ class RedisToolImpl implements RedisTool {
     try {
       return await this.redis.smembers(key);
     } catch (e) {
-      console.error(e);
+      logger.error("Redis smembers failed:", e);
       return null;
     }
   }
@@ -147,12 +147,12 @@ class RedisToolImpl implements RedisTool {
     try {
       return await this.redis.sismember(key, member);
     } catch (e) {
-      console.error(e);
+      logger.error("Redis sismember failed:", e);
       return null;
     }
   }
 
-  public async hset(key: string, field: string, value: any) {
+  public async hset(key: string, field: string, value: string | number) {
     try {
       const lock = await this.lock(key);
       if (lock) {
@@ -160,11 +160,11 @@ class RedisToolImpl implements RedisTool {
         this.unlockLock(lock);
         return res;
       } else {
-        console.log("其他线程在处理中");
+        logger.warn("Redis hset: lock acquisition failed for key:", key);
         return null;
       }
     } catch (e) {
-      console.error(e);
+      logger.error("Redis hset failed:", e);
       return null;
     }
   }
@@ -173,7 +173,7 @@ class RedisToolImpl implements RedisTool {
     try {
       return await this.redis.hget(key, field);
     } catch (e) {
-      console.error(e);
+      logger.error("Redis hget failed:", e);
       return null;
     }
   }
@@ -186,11 +186,11 @@ class RedisToolImpl implements RedisTool {
         this.unlockLock(lock);
         return res;
       } else {
-        console.log("其他线程在处理中");
+        logger.warn("Redis lpush: lock acquisition failed for key:", key);
         return null;
       }
     } catch (e) {
-      console.error(e);
+      logger.error("Redis lpush failed:", e);
       return null;
     }
   }
@@ -199,7 +199,7 @@ class RedisToolImpl implements RedisTool {
     try {
       return await this.redis.hgetall(key);
     } catch (e) {
-      console.error(e);
+      logger.error("Redis hgetall failed:", e);
       return null;
     }
   }
@@ -212,11 +212,11 @@ class RedisToolImpl implements RedisTool {
         this.unlockLock(lock);
         return res;
       } else {
-        console.log("其他线程在处理中");
+        logger.warn("Redis hmset: lock acquisition failed for key:", key);
         return null;
       }
     } catch (e) {
-      console.error(e);
+      logger.error("Redis hmset failed:", e);
       return null;
     }
   }
@@ -229,11 +229,11 @@ class RedisToolImpl implements RedisTool {
         this.unlockLock(lock);
         return res;
       } else {
-        console.log("其他线程在处理中");
+        logger.warn("Redis zadd: lock acquisition failed for key:", key);
         return null;
       }
     } catch (e) {
-      console.error(e);
+      logger.error("Redis zadd failed:", e);
       return null;
     }
   }
@@ -242,7 +242,7 @@ class RedisToolImpl implements RedisTool {
     try {
       return await this.redis.pfadd(key, value);
     } catch (e) {
-      console.error(e);
+      logger.error("Redis pfadd failed:", e);
       return null;
     }
   }
@@ -251,7 +251,7 @@ class RedisToolImpl implements RedisTool {
     try {
       return await this.redis.pfcount(key);
     } catch (e) {
-      console.error(e);
+      logger.error("Redis pfcount failed:", e);
       return null;
     }
   }
@@ -260,7 +260,7 @@ class RedisToolImpl implements RedisTool {
     try {
       return await this.redis.pfmerge(key, ...sourcekey);
     } catch (e) {
-      console.error(e);
+      logger.error("Redis pfmerge failed:", e);
       return null;
     }
   }
@@ -269,7 +269,7 @@ class RedisToolImpl implements RedisTool {
     try {
       return await this.redis.setbit(key, offset, value);
     } catch (e) {
-      console.error(e);
+      logger.error("Redis setbit failed:", e);
       return null;
     }
   }
@@ -278,7 +278,7 @@ class RedisToolImpl implements RedisTool {
     try {
       return await this.redis.exists(key);
     } catch (e) {
-      console.error(e);
+      logger.error("Redis exists failed:", e);
       return null;
     }
   }
@@ -287,7 +287,7 @@ class RedisToolImpl implements RedisTool {
     try {
       return await this.redis.expire(key, expiration);
     } catch (e) {
-      console.error(e);
+      logger.error("Redis expire failed:", e);
       return null;
     }
   }
@@ -336,9 +336,9 @@ class RedisToolImpl implements RedisTool {
 
   public async goodDel(pattern: string, time: number) {
     const result = await this.scan(pattern, 100);
-    console.info(`[RedisTool]:goodDel 一共需要删除key的数量`, result.length);
+    logger.info(`[RedisTool]:goodDel keys to delete: ${result.length}`);
     for (const key of result) {
-      console.info(`[RedisTool]:goodDel 已经删除的key`, key);
+      logger.debug(`[RedisTool]:goodDel deleting key: ${key}`);
       await new Promise(resolve => setTimeout(resolve, time * 1000));
       await this.unlink(key);
     }

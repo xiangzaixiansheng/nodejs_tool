@@ -1,37 +1,17 @@
-/**
- * @description 获取10位时间戳
- * @returns 
- */
-export const getCurTimeStamp = () => {
-  return Math.round(new Date().getTime() / 1000);
-}
-/**
- * @description 获取n天前的10位时间戳
- * @param days 
- */
-export const getBeforeDaysTmp = (days: number = 2) => {
-  return Math.round((new Date().getTime() - 24 * 60 * 60 * 1000 * days) / 1000);
+import dayjs from 'dayjs';
+
+export function getCurTimeStamp(): number {
+  return Math.round(Date.now() / 1000);
 }
 
-
-export function formatTime(time: Date) {
-  const year = time.getFullYear();
-  const [month, day] = [time.getMonth() + 1, time.getDate()].map(formatNumber);
-  return `${year}-${month}-${day}`;
+export function getBeforeDaysTmp(days: number = 2): number {
+  return Math.round(dayjs().subtract(days, 'day').valueOf() / 1000);
 }
 
-function formatNumber(n: number) {
-  return n < 10 ? `0${n}` : n;
+export function formatTime(time: Date): string {
+  return dayjs(time).format('YYYY-MM-DD');
 }
 
-export const getDate = (time: Date) => {
-  time = new Date(time);
-
-  const [year, month, date] = [
-    time.getFullYear(),
-    time.getMonth() + 1,
-    time.getDate(),
-  ].map((n) => (n < 10 ? `0${n}` : n));
-
-  return `${year}-${month}-${date}`;
-};
+export function getDate(time: Date): string {
+  return dayjs(time).format('YYYY-MM-DD');
+}

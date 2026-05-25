@@ -1,55 +1,54 @@
+interface FilterResult<T> {
+    listData: T[];
+    total: number;
+}
 
-export class Filter {
-    //conditions里面的val支持正则匹配
-    constructor(public data: Array<any>, private conditions: object = {}, private page: number, private page_size: number) {
-        this.page = this.processNumber(this.page, 1);
-        this.page_size = this.processNumber(this.page_size, 20);
+export class Filter<T extends Record<string, unknown>> {
+    private readonly page: number;
+    private readonly pageSize: number;
+
+    constructor(
+        public data: T[],
+        private readonly conditions: Partial<Record<keyof T, string | RegExp>> = {},
+        page: number,
+        pageSize: number,
+    ) {
+        this.page = this.processNumber(page, 1);
+        this.pageSize = this.processNumber(pageSize, 20);
     }
 
-    public filter(): { listData: Array<object>, total: number } {
-        let result: Array<object> = [];
-        (this.data || []).forEach((ele) => {
-            if (this.compareObj(ele)) {
-                result.push(ele);
-            }
-        });
-        return this.limit(result);
+    public filter(): FilterResult<T> {
+        const result = (this.data || []).filter((item) => this.matchConditions(item));
+        return this.paginate(result);
     }
 
-    private compareObj(itemObj: any): Boolean {
-        for (let con_key in this.conditions) {
-            let _item = typeof itemObj[con_key] == 'string' ? itemObj[con_key] : itemObj[con_key].toString();
-            //@ts-ignore
-            if (!_item.match(this.conditions[con_key])) {
+    private matchConditions(item: T): boolean {
+        for (const key of Object.keys(this.conditions) as Array<keyof T>) {
+            const pattern = this.conditions[key];
+            if (!pattern) continue;
+
+            const value = String(item[key] ?? '');
+            if (!value.match(pattern)) {
                 return false;
             }
         }
         return true;
     }
 
-    private limit(obj: Array<object>): { listData: Array<object>, total: number } {
-        let _res: Array<object> = []
-        const skip = (this.page - 1) * this.page_size;
-        (obj || []).forEach((item, index) => {
-            if (index >= skip && index < skip + this.page_size) {
-                _res.push(item);
-            }
-        })
+    private paginate(items: T[]): FilterResult<T> {
+        const skip = (this.page - 1) * this.pageSize;
+        const listData = items.slice(skip, skip + this.pageSize);
         return {
-            listData: _res,
-            total: _res.length
-        }
+            listData,
+            total: items.length,
+        };
     }
 
-    private processNumber(value: any, defaultValue: number) {
-        value = Number(value);
-        if (!value || value < 1) {
-            // 不允许非数字或者小于1的数字
+    private processNumber(value: unknown, defaultValue: number): number {
+        const num = Number(value);
+        if (!num || num < 1) {
             return defaultValue;
         }
-        return value;
+        return num;
     }
-
 }
-
-// console.info(new Filter(data, { id: 8 }, 2, 1).filter());

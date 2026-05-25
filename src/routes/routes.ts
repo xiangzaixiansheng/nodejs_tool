@@ -3,6 +3,7 @@ import * as path from "path";
 import { resolve } from "path";
 import "reflect-metadata";
 import { ROUTER_MAP } from '../constant/constants';
+import { logger } from '../util/logger';
 
 /**
  * 路由类型
@@ -66,7 +67,7 @@ const addRouter = async (router: any) => {
                 const routePath: string = prefix + route.path;
                 const obj = ctr[route.name].bind(ctr);
                 router[route.method](routePath, obj);
-                console.log("添加路由成功:" + routePath);
+                logger.debug("Route registered: " + routePath);
             });
         }
     }

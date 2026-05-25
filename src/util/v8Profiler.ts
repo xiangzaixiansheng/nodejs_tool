@@ -1,7 +1,6 @@
 import v8Profiler from 'v8-profiler-next';
 import * as fs from 'fs';
 import * as path from "path";
-import * as fsExtra from "fs-extra";
 /***
  * @description 分析Profiler
  * 
@@ -24,10 +23,8 @@ export class profiler {
 
     public async start() {
         v8Profiler.startProfiling(this.title, true);
-        let _p = path.resolve(__dirname, "./cpu_profiler");
-        //不存在文件夹则, 创建文件夹
-        let isExist = await this.checkFileExist(_p);
-        !isExist && fsExtra.ensureDirSync(_p);
+        const _p = path.resolve(__dirname, "./cpu_profiler");
+        fs.mkdirSync(_p, { recursive: true });
 
         setTimeout(() => { // 30 秒后采集并导出
             const profile = v8Profiler.stopProfiling(this.title);
@@ -37,17 +34,6 @@ export class profiler {
             });
 
         }, this.time);
-    }
-
-    private checkFileExist(filePath: string): Promise<boolean> {
-        return new Promise((resolve) => {
-            fs.access(filePath, fs.constants.F_OK, (err) => {
-                if (err) {
-                    return resolve(false);
-                }
-                return resolve(true);
-            });
-        });
     }
 
 }

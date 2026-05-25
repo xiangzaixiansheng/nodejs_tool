@@ -13,7 +13,7 @@
 - **校验**: Zod
 - **认证**: JWT
 - **文档**: Swagger/OpenAPI
-- **日志**: Pino
+- **日志**: log4js
 - **测试**: Vitest
 
 ## 二、快速开始
@@ -107,8 +107,7 @@ NODE_ENV=prod node dist/index.js
 │   └── util/            # 工具函数
 ├── public/              # 静态资源
 ├── dist/                # 编译输出
-├── doc/                 # 文档
-└── tests/               # 测试文件
+└── doc/                 # 文档
 ```
 
 ## 四、API 接口
@@ -182,20 +181,21 @@ const createUserSchema = z.object({
 使用 BullMQ 处理异步任务：
 
 ```typescript
-import BullModule from './util/BullModule';
+import { bullModule } from './util/BullModule';
 
-await BullModule.addJob('myJob', { data: 'value' });
+await bullModule.saveObj({ key: 'value' }, 'myObj', 1);
+await bullModule.saveActive('userId');
 ```
 
 ### 5. 日志
 
-使用 Pino 记录结构化日志：
+使用 log4js 记录日志：
 
 ```typescript
 import { logger } from './util/logger';
 
 logger.info('操作成功');
-logger.error({ err }, '操作失败');
+logger.error('操作失败:', err);
 ```
 
 ## 六、命令说明
@@ -204,9 +204,9 @@ logger.error({ err }, '操作失败');
 |------|------|
 | `npm run dev` | 开发模式启动（热重载）|
 | `yarn build` | 编译 TypeScript |
-| `npm start` | 生产模式启动 |
 | `npm test` | 运行测试 |
-| `npm run lint` | 代码检查 |
+| `npm run test:coverage` | 运行测试并输出覆盖率 |
+| `npm run typecheck` | TypeScript 类型检查 |
 
 ## 七、目录生成
 
@@ -223,13 +223,13 @@ treer -i node_modules -o result.txt
 
 - ✅ TypeScript 5.x 严格模式
 - ✅ TypeORM 0.3.x DataSource API
-- ✅ ioredis 5.x + redlock 5.x
+- ✅ ioredis 5.x + redlock 4.x
 - ✅ BullMQ 替代 bull
 - ✅ Zod 输入校验
 - ✅ JWT 认证
 - ✅ Swagger API 文档
 - ✅ 优雅关闭机制
-- ✅ Pino 日志系统
+- ✅ log4js 日志系统
 - ✅ 健康检查端点
 - ✅ 限流中间件
 - ✅ Vitest 测试框架

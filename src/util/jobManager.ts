@@ -1,6 +1,7 @@
 import { CronJob } from 'cron';
+import { logger } from './logger';
 
-interface Job {
+interface JobEntry {
     id: string | number;
     crontab: string;
     cronJob: CronJob;
@@ -8,15 +9,18 @@ interface Job {
     name: string;
 }
 
-interface HashTableEntry {
-    [key: string]: Job;
+interface JobParam {
+    id: string | number;
+    crontab: string;
+    status: boolean;
+    name: string;
 }
 
 class HashTable {
     private size = 0;
-    private entry: HashTableEntry = {};
+    private entry: Record<string, JobEntry> = {};
 
-    add(key: string | number, value: Job) {
+    add(key: string | number, value: JobEntry) {
         const keyStr = String(key);
         if (!this.containsKey(keyStr)) {
             this.size++;
@@ -24,7 +28,7 @@ class HashTable {
         this.entry[keyStr] = value;
     }
 
-    getValue(key: string | number): Job | null {
+    getValue(key: string | number): JobEntry | null {
         return this.entry[String(key)] ?? null;
     }
 
@@ -45,109 +49,88 @@ class HashTable {
     }
 }
 
-// 使用单例模式替代 global
 const jobTable = new HashTable();
 
-//程序启动时执行
 export async function InitJob() {
-    //从数据库中获取全部的crontab信息,目前是在内存管理，后期可以通过redis和文件进行管理
-    let jobFiles: any[] | null = [];
-    console.info(`[jobManager]jobFiles`, jobFiles);
+    const jobFiles: JobParam[] | null = [];
+    logger.info(`[jobManager] loading jobs: ${jobFiles.length}`);
     if (jobFiles != null) {
         jobFiles.forEach((item) => {
             try {
-                let { id, crontab, status, name } = item;
-                if (item != null) {
-                    let cronJob = new CronJob(crontab, async () => {
-                        console.info('[jobManager]任务执行啦', id)
-                        await execJob(id, name);
-                    }, null, true, "Asia/Shanghai");
+                const { id, crontab, status, name } = item;
+                const cronJob = new CronJob(crontab, async () => {
+                    logger.info(`[jobManager] executing job: ${id}`);
+                    await execJob(id, name);
+                }, null, true, "Asia/Shanghai");
 
-                    let job = {
-                        id,
-                        crontab,
-                        cronJob,
-                        status,
-                        name
-                    };
-                    jobTable.add(id, job);
-                    StartJob(id);
-                }
+                const job: JobEntry = { id, crontab, cronJob, status, name };
+                jobTable.add(id, job);
+                StartJob(id);
             } catch (e) {
-                console.error('[jobManager] 加载任务失败', item.id, e);
+                logger.error(`[jobManager] failed to load job: ${item.id}`, e);
             }
         });
-    };
+    }
 }
 
-export function StartJob(id: any) {
+export function StartJob(id: string | number): string {
     try {
         const job = jobTable.getValue(id);
         if (job != null) {
             if (!job.status) {
                 return '任务已停止';
             }
-            let cronJob = job.cronJob;
+            const cronJob = job.cronJob;
             if (cronJob != null) {
-                console.info(`[jobManager]StartJob成功, id:${job.id}, ${job.crontab}`)
+                logger.info(`[jobManager] StartJob id:${job.id}, ${job.crontab}`);
                 cronJob.start();
             }
         }
         return "success";
     } catch (e) {
-        console.error('[jobManager]开始任务失败：' + e);
+        logger.error('[jobManager] StartJob failed:', e);
         return '开始任务失败';
     }
-};
+}
 
-
-export function CreateJob(param: any) {
+export function CreateJob(param: JobParam): string {
     try {
-        let { id, crontab, status, name } = param;
-        if (jobTable.containsKey(param.id)) {
+        const { id, crontab, status, name } = param;
+        if (jobTable.containsKey(String(id))) {
             return '任务id重复';
         }
-        let cronJob = new CronJob(crontab, async () => {
-            console.info('[jobManager]任务执行啦', id)
+        const cronJob = new CronJob(crontab, async () => {
+            logger.info(`[jobManager] executing job: ${id}`);
             await execJob(id, name);
         }, null, true, "Asia/Shanghai");
 
-        let job = {
-            id: id,
-            crontab: crontab,
-            status: status,
-            cronJob: cronJob,
-            name
-        };
+        const job: JobEntry = { id, crontab, status, cronJob, name };
         jobTable.add(id, job);
         StartJob(id);
         return 'success';
     } catch (e) {
-        console.error('[jobManager]创建任务失败：' + "id:" + param.id + e);
+        logger.error(`[jobManager] CreateJob failed id:${param.id}`, e);
         return '创建任务失败';
     }
-
-};
-
+}
 
 export function DeleteJob(id: number): string {
     try {
-        let job = jobTable.getValue(id);
+        const job = jobTable.getValue(id);
         if (job != null) {
-            let cronJob = job.cronJob;
+            const cronJob = job.cronJob;
             if (cronJob != null) {
                 cronJob.stop();
             }
         }
         jobTable.remove(id);
-        console.info(`[jobManager]已经删除任务 id:${id}`);
+        logger.info(`[jobManager] deleted job id:${id}`);
         return 'success';
     } catch (e) {
-        console.error('[jobManager]删除任务失败：' + e);
+        logger.error('[jobManager] DeleteJob failed:', e);
         return '删除任务失败';
     }
-};
-
+}
 
 export function getJob(id: number) {
     return jobTable.getValue(id);
@@ -157,7 +140,6 @@ export function getJobCount() {
     return jobTable.getSize();
 }
 
-
-async function execJob(id: number, name: string) {
-    console.info(`任务执行id :${id} name: ${name}`);
+async function execJob(id: string | number, name: string) {
+    logger.info(`[jobManager] exec id:${id} name:${name}`);
 }

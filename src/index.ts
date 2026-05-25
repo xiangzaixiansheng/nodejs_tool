@@ -6,32 +6,30 @@ import { bodyParser } from "@koa/bodyparser";
 import Koa, { Context } from 'koa';
 import Router from "@koa/router";
 import * as path from "path";
-import * as fs from "fs-extra";
+import * as fs from "fs";
+
+import ratelimit from "koa-ratelimit";
+import serve from "koa-static";
+import views from "koa-views";
 
 import { addRouter } from "./routes/routes";
 import swaggerRouter, { swaggerUi } from "./routes/swagger";
 import { redis } from "./glues/redis";
 import createConnection from "./glues";
 import { getDataSource } from "./glues/mysql";
-import { loggerMiddleware } from './util/logger';
-import { logger } from './util/logger';
+import { loggerMiddleware, logger } from './util/logger';
 import { getIp } from "./util/fileTool";
 import { getLimiterConfig } from "./util/limiterReq";
 import { getConfigSync } from "./config";
 import { bullModule as BullModule } from "./util/BullModule";
 
-// 中间件
 import { errorHandler } from "./middleware/errorHandler";
 import { requestIdMiddleware } from "./middleware/requestId";
 import { healthCheck, readyCheck } from "./middleware/healthCheck";
 
-const ratelimit = require("koa-ratelimit");
-const serve = require("koa-static");
-const views = require("koa-views");
-
 const config = getConfigSync();
 const uploadDir = __dirname + "/uploads";
-fs.ensureDirSync(uploadDir);
+fs.mkdirSync(uploadDir, { recursive: true });
 
 class App {
     private readonly app: Koa;
@@ -120,7 +118,7 @@ class App {
             logger.info(`Server running on http://localhost:${port}`);
             const IP = getIp();
             logger.info(`本机ip: ${IP}`);
-            console.log(`curl -F "file=@文件名" -X POST "http://${IP}:${port}/api/uploadFile"`);
+            logger.info(`curl -F "file=@文件名" -X POST "http://${IP}:${port}/api/uploadFile"`);
         });
 
         // 优雅关闭

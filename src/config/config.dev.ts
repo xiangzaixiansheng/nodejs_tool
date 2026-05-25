@@ -2,25 +2,24 @@ export const config = {
     redis: {
         port: 6379,
         host: "127.0.0.1",
-        db: 0 //可以删除掉哦
+        db: 0,
     },
     bullconfig: {
         queue1: "queue1",
-        queue2: "queue2"
+        queue2: "queue2",
     },
     mysql: {
         type: "mysql" as const,
         host: "localhost",
         port: 3306,
         username: "root",
-        password: "xiangzai",
+        password: process.env.DB_PASSWORD || "",
         database: "sqlstudy",
-        synchronize: process.env.NODE_ENV === 'dev',//是否进行数据库同步 线上环境必须为false
-        logging: process.env.NODE_ENV === 'dev',
+        synchronize: true,
+        logging: true,
         timezone: "+8:00",
-        entities:
-            process.env.NODE_ENV === "dev" ? ["src/entities/*"] : ["dist/entities/*"],
-    }
+        entities: ["src/entities/*"],
+    },
 };
 
 export default config;
