@@ -32,15 +32,28 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.addRouter = void 0;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const path_1 = require("path");
 require("reflect-metadata");
+const multer_1 = __importDefault(require("@koa/multer"));
 const constants_1 = require("../constant/constants");
 const logger_1 = require("../util/logger");
 const ctrPath = (0, path_1.resolve)(__dirname, "../controllers");
+const uploadDir = (0, path_1.resolve)(__dirname, "../uploads");
+fs.mkdirSync(uploadDir, { recursive: true });
+const uploadMiddleware = (0, multer_1.default)({
+    storage: multer_1.default.diskStorage({
+        destination: (_req, _file, cb) => cb(null, uploadDir),
+        filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+    }),
+    limits: { fileSize: 100 * 1024 * 1024 },
+});
 const addRouter = async (router) => {
     await recursion(ctrPath, "");
     async function recursion(folderName, prefix) {
@@ -69,7 +82,12 @@ const addRouter = async (router) => {
             routerMap.forEach((route) => {
                 const routePath = prefix + route.path;
                 const obj = ctr[route.name].bind(ctr);
-                router[route.method](routePath, obj);
+                if (route.name === "uploadFile" && route.method === "post") {
+                    router.post(routePath, uploadMiddleware.single('file'), obj);
+                }
+                else {
+                    router[route.method](routePath, obj);
+                }
                 logger_1.logger.debug("Route registered: " + routePath);
             });
         }

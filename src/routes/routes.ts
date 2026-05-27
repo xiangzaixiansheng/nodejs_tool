@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { resolve } from "path";
 import "reflect-metadata";
+import multer from "@koa/multer";
 import { ROUTER_MAP } from '../constant/constants';
 import { logger } from '../util/logger';
 
@@ -16,6 +17,19 @@ type RouteMeta = {
 
 // controllers下的路径
 const ctrPath = resolve(__dirname, "../controllers");
+
+// 上传目录
+const uploadDir = resolve(__dirname, "../uploads");
+fs.mkdirSync(uploadDir, { recursive: true });
+
+// multer 配置
+const uploadMiddleware = multer({
+    storage: multer.diskStorage({
+        destination: (_req, _file, cb) => cb(null, uploadDir),
+        filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+    }),
+    limits: { fileSize: 100 * 1024 * 1024 },
+});
 
 /**
  * @desc：路由自动扫描，获取controllers文件夹下面的文件，并通过装饰器添加请求
@@ -66,7 +80,13 @@ const addRouter = async (router: any) => {
             routerMap.forEach((route) => {
                 const routePath: string = prefix + route.path;
                 const obj = ctr[route.name].bind(ctr);
-                router[route.method](routePath, obj);
+
+                // uploadFile 路由使用 multer 中间件
+                if (route.name === "uploadFile" && route.method === "post") {
+                    router.post(routePath, uploadMiddleware.single('file'), obj);
+                } else {
+                    router[route.method](routePath, obj);
+                }
                 logger.debug("Route registered: " + routePath);
             });
         }

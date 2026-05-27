@@ -1,6 +1,5 @@
 import { Context } from "koa";
 import fs from 'fs';
-import { wrap } from '../../util/requestRes';
 import { post, get } from "../../util/decorator/httpMethod";
 
 /**
@@ -8,13 +7,26 @@ import { post, get } from "../../util/decorator/httpMethod";
  */
 export class ApiController {
 
-  
   /**
    * 文件上传 - 简单版
+   * 注意：文件处理在 index.ts 中通过 multer 中间件完成
    */
   @post("/uploadFile")
   public async uploadFile(ctx: Context) {
-    ctx.body = await wrap(Promise.resolve("success"));
+    const file = ctx.file;
+    if (!file) {
+      ctx.status = 400;
+      ctx.body = { success: false, error: '没有上传文件' };
+      return;
+    }
+    ctx.body = {
+      success: true,
+      data: {
+        filename: file.originalname,
+        path: `/uploads/${file.filename}`,
+        size: file.size,
+      },
+    };
   }
 
   /**

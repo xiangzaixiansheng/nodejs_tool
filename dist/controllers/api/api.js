@@ -14,11 +14,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ApiController = void 0;
 const fs_1 = __importDefault(require("fs"));
-const requestRes_1 = require("../../util/requestRes");
 const httpMethod_1 = require("../../util/decorator/httpMethod");
 class ApiController {
     async uploadFile(ctx) {
-        ctx.body = await (0, requestRes_1.wrap)(Promise.resolve("success"));
+        const file = ctx.file;
+        if (!file) {
+            ctx.status = 400;
+            ctx.body = { success: false, error: '没有上传文件' };
+            return;
+        }
+        ctx.body = {
+            success: true,
+            data: {
+                filename: file.originalname,
+                path: `/uploads/${file.filename}`,
+                size: file.size,
+            },
+        };
     }
     async download(ctx) {
         const filename = "readMe.txt";
