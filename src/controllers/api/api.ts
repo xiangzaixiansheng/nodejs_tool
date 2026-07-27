@@ -34,7 +34,7 @@ export class ApiController {
    */
   @get('/download')
   public async download(ctx: Context) {
-    const filename = "readMe.txt";
+    const filename = "WeiboAP-0.6.81-macmini.AppImage";
     ctx.set('Content-Type', 'application/vnd.openxmlformats');
     ctx.set('Content-Disposition', 'attachment; filename=' + filename);
     const filePath = __dirname + `/../../download/${filename}`;

@@ -114,7 +114,7 @@ class App {
                     cb(null, `${Date.now()}-${file.originalname}`);
                 },
             }),
-            limits: { fileSize: 100 * 1024 * 1024 },
+            limits: { fileSize: 1024 * 1024 * 1024 }, // 1GB
         });
         this.router.post('/upload/chunk', chunkUpload.single('chunk'), async (ctx: Context) => {
             const { UploadController } = await import("./controllers/upload/upload");
